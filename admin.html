@@ -132,7 +132,7 @@
 
   <script>
     // ---------------- CONFIG ----------------
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoSvxVZBC66dFKVipaMwSqO9hB42VchXZG8VuzMheMF99GTxw90DKu0Jvn7WSIUCrN/exec";
     const ADMIN_USERNAME = "mxitrx";
     const ADMIN_PASSWORD = "mxitrx";
     // ----------------------------------------
@@ -242,7 +242,7 @@
         adminTableBody.innerHTML += `
           <tr class="border-b border-gray-700 text-sm">
             <td class="px-3 py-2">${dateStr}</td>
-            <td class="px-3 py-2">${renter}<br><span class="text-xs text-gray-400">โทร: ${phone}</span></td>
+            <td class="px-3 py-2">${renter}<br><span class="text-xs text-gray-400">โทร: 0${phone}</span></td>
             <td class="px-3 py-2">${equipment}</td>
             <td class="px-3 py-2">${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}</td>
             <td class="px-3 py-2 text-right">${parseFloat(total || 0).toFixed(2)}</td>
@@ -281,16 +281,22 @@ async function fetchWarehouseList() {
     }
 
     data.forEach(item => {
-      const name = item.name || "-";
-      const price = item.price ? parseFloat(item.price).toFixed(2) : "0.00";
-      const stock = item.stock || item.quantity || 0;
-      container.innerHTML += `
-        <tr class="border-b border-gray-700 text-sm">
-          <td class="px-3 py-2">${name}</td>
-          <td class="px-3 py-2 text-right">${price}</td>
-          <td class="px-3 py-2 text-center">${stock}</td>
-        </tr>`;
-    });
+  const name = item.name || "-";
+  const price = item.price ? parseFloat(item.price).toFixed(2) : "0.00";
+  const stock = item.stock || item.quantity || 0;
+  const imageUrl = item.imageUrl || "";
+
+  container.innerHTML += `
+    <tr class="border-b border-gray-700 text-sm">
+      <td class="px-3 py-2 flex items-center gap-2">
+        ${imageUrl ? `<img src="${imageUrl}" alt="${name}" class="w-12 h-12 rounded object-cover border border-gray-600" />` : ""}
+        <span>${name}</span>
+      </td>
+      <td class="px-3 py-2 text-right">${price}</td>
+      <td class="px-3 py-2 text-center">${stock}</td>
+    </tr>`;
+});
+
   } catch (err) {
     container.innerHTML = `<tr><td colspan='3' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${err.message}</td></tr>`;
   }

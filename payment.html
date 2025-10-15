@@ -15,10 +15,10 @@
     <h1 class="text-2xl font-bold text-center text-orange-400 mb-6">ชำระเงินเพื่อยืนยันการเช่า</h1>
 
     <div id="qr-section" class="text-center mb-6">
-      <canvas id="promptpay-qr" class="w-64 h-64 mx-auto border rounded-lg mb-4 bg-white"></canvas>
-      <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
-      <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
-    </div>
+  <img id="promptpay-img" class="w-64 h-64 mx-auto border rounded-lg mb-4 bg-white" alt="PromptPay QR">
+  <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
+  <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
+</div>
 
     <form id="slipForm" class="space-y-4">
       <input type="hidden" id="renterName" name="custName">
@@ -44,105 +44,80 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
-    const PROMPTPAY_ID = "0972653945";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoSvxVZBC66dFKVipaMwSqO9hB42VchXZG8VuzMheMF99GTxw90DKu0Jvn7WSIUCrN/exec";
+const PROMPTPAY_ID = "0972653945";
 
-    const params = new URLSearchParams(window.location.search);
-    const name = params.get("name") || "ลูกค้าไม่ระบุชื่อ";
-    const equipment = params.get("equipment") || "ไม่ระบุอุปกรณ์";
-    const amount = parseFloat(params.get("amount")) || 50; // 👈 กำหนดค่าขั้นต่ำป้องกัน 0
-    const email = params.get("email") || "";
+// ✅ รับค่าจาก index.html
+const params = new URLSearchParams(window.location.search);
+const name = params.get("name") || "ลูกค้าไม่ระบุชื่อ";
+const equipment = params.get("equipment") || "ไม่ระบุอุปกรณ์";
+const amount = parseFloat(params.get("amount")) || 0;
+const email = params.get("email") || "";
 
-    document.getElementById("renterName").value = name;
-    document.getElementById("equipment").value = equipment;
-    document.getElementById("amountValue").value = amount;
-    document.getElementById("amount").textContent = amount.toFixed(2);
+// ✅ แสดงข้อมูลในหน้า
+document.getElementById("renterName").value = name;
+document.getElementById("equipment").value = equipment;
+document.getElementById("amountValue").value = amount;
+document.getElementById("amount").textContent = amount.toFixed(2);
 
-    // ✅ ฟังก์ชันสร้าง Payload QR PromptPay (มาตรฐาน)
-    function generatePromptPayPayload(id, amount) {
-      const prefix = "000201010212";
-      const merchant = `29370016A00000067701011101130066${id}`;
-      const country = "5802TH";
-      const currency = "5303764";
-      const amt = `54${("0" + amount.toFixed(2).length).slice(-2)}${amount.toFixed(2)}`;
-      const data = `${prefix}${merchant}${country}${currency}${amt}6304`;
-      let crc = 0xFFFF;
-      for (let i = 0; i < data.length; i++) {
-        crc ^= data.charCodeAt(i) << 8;
-        for (let j = 0; j < 8; j++) {
-          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-          crc &= 0xFFFF;
-        }
-      }
-      const checksum = ("0000" + crc.toString(16).toUpperCase()).slice(-4);
-      return data + checksum;
+// ✅ แสดง QR จริงจาก promptpay.io
+document.getElementById("promptpay-img").src = `https://promptpay.io/${PROMPTPAY_ID}/${amount}.png`;
+
+// ✅ แสดง Preview สลิป
+document.getElementById("slipFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  const preview = document.getElementById("slipPreview");
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      preview.src = ev.target.result;
+      preview.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.classList.add("hidden");
+  }
+});
+
+// ✅ อัปโหลดสลิป
+document.getElementById("slipForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = document.getElementById("slipFile").files[0];
+  if (!file) return Swal.fire("❗ กรุณาแนบสลิป", "", "warning");
+
+  const formData = new FormData();
+  formData.append("action", "uploadSlip");
+  formData.append("file", file);
+  formData.append("custName", name);
+  formData.append("equipment", equipment);
+  formData.append("amount", amount);
+  formData.append("email", email);
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "กำลังอัปโหลด...";
+
+  try {
+    const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
+    const result = await res.json();
+    if (result.success || result.result === "success") {
+      Swal.fire({
+        title: "✅ ส่งสลิปสำเร็จ!",
+        text: "ระบบได้รับข้อมูลแล้ว",
+        icon: "success",
+        confirmButtonColor: "#ea580c",
+        confirmButtonText: "กลับหน้าแรก"
+      }).then(() => window.location.href = "index.html");
+    } else {
+      Swal.fire("❌ ไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด", "error");
     }
-
-    // ✅ สร้าง QR Code ด้วย Canvas (คุณภาพสูงกว่า qrcodejs)
-    async function generatePromptPayQR() {
-      const qrCanvas = document.getElementById("promptpay-qr");
-      const payload = generatePromptPayPayload(PROMPTPAY_ID, amount);
-      await QRCode.toCanvas(qrCanvas, payload, { width: 256, margin: 1 });
-    }
-
-    generatePromptPayQR();
-
-    // ✅ แสดง Preview สลิป
-    document.getElementById("slipFile").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      const preview = document.getElementById("slipPreview");
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          preview.src = ev.target.result;
-          preview.classList.remove("hidden");
-        };
-        reader.readAsDataURL(file);
-      } else {
-        preview.classList.add("hidden");
-      }
-    });
-
-    // ✅ ส่งสลิป + Popup แจ้งเตือน
-    document.getElementById("slipForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const file = document.getElementById("slipFile").files[0];
-      if (!file) return Swal.fire("❗ กรุณาแนบสลิป", "โปรดแนบไฟล์ก่อนส่ง", "warning");
-
-      const btn = document.getElementById("submitBtn");
-      btn.disabled = true;
-      btn.textContent = "กำลังอัปโหลด...";
-
-      const formData = new FormData();
-      formData.append("action", "uploadSlip");
-      formData.append("file", file);
-      formData.append("custName", name);
-      formData.append("equipment", equipment);
-      formData.append("amount", amount);
-      formData.append("email", email);
-
-      try {
-        const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
-        const result = await res.json();
-
-        if (result.success || result.result === "success") {
-          Swal.fire({
-            title: "✅ ส่งสลิปสำเร็จ!",
-            text: "ระบบได้รับข้อมูลแล้ว",
-            icon: "success",
-            confirmButtonColor: "#ea580c",
-            confirmButtonText: "กลับหน้าแรก"
-          }).then(() => window.location.href = "index.html");
-        } else {
-          Swal.fire("❌ ไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด", "error");
-        }
-      } catch (err) {
-        Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "ยืนยันการชำระเงิน";
-      }
-    });
-  </script>
+  } catch (err) {
+    Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "ยืนยันการชำระเงิน";
+  }
+});
+</script>
 </body>
 </html>

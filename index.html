@@ -51,7 +51,7 @@
             <div id="event-body" class="event-details-body text-gray-300 space-y-2">
                 <p><i class="fas fa-user"></i><strong class="text-gray-100" id="event-renter"></strong></p>
                 <p><i class="fas fa-calendar-alt"></i><span id="event-period"></span></p>
-                <p><i class="fas fa-phone"></i><span id="event-phone"></span></p>
+                <p><i class="fas fa-phone"></i>0<span id="event-phone"></span></p>
                 <p><i class="fas fa-map-marker-alt"></i><span id="event-address" class="whitespace-pre-wrap"></span></p>
             </div>
             <button onclick="hideEventDetailsModal()" class="mt-6 bg-gray-600 text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-500 w-full">ปิด</button>
@@ -193,7 +193,7 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
     <script>
         // --- CONFIGURATION ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoSvxVZBC66dFKVipaMwSqO9hB42VchXZG8VuzMheMF99GTxw90DKu0Jvn7WSIUCrN/exec";
         const PROMPTPAY_ID = "0972653945";
 
         // --- GLOBAL VARIABLES & ELEMENTS ---
@@ -579,7 +579,7 @@ function showPromptPayModal(amount) {
   document.getElementById("promptpay-modal").classList.add("active");
 }
 
-// ✅ ฟังก์ชันยืนยันก่อนเช่าจริง
+/// ✅ ฟังก์ชันยืนยันก่อนเช่าจริงและส่งต่อไป payment.html
 rentalForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -588,18 +588,25 @@ rentalForm.addEventListener("submit", async (e) => {
   const formData = new FormData(rentalForm);
   const start = new Date(formData.get("startDate"));
   const end = new Date(formData.get("endDate"));
+
   if (end <= start) {
     alert("วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มเช่า");
     return;
   }
 
   try {
+    // ✅ บันทึกข้อมูลลง Google Sheet ก่อน
     const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
     const result = await res.json();
+
     if (result.result === "success") {
-      const total = parseFloat(totalCostDisplay.textContent.replace(/[฿,]/g, ""));
-      alert("สร้างรายการเช่าสำเร็จ! กรุณาชำระเงิน");
-      window.location.href = `payment.html?name=${encodeURIComponent(formData.get("renterName"))}&equipment=${encodeURIComponent(formData.get("equipmentName"))}&amount=${encodeURIComponent(total)}`;
+      const total = parseFloat(totalCostDisplay.textContent.replace(/[฿,]/g, "")) || 0;
+      const renterName = formData.get("renterName");
+      const equipment = formData.get("equipmentName");
+      const email = formData.get("email");
+
+      // ✅ ส่งต่อไปหน้า payment.html พร้อมข้อมูลครบ
+      window.location.href = `payment.html?name=${encodeURIComponent(renterName)}&equipment=${encodeURIComponent(equipment)}&amount=${encodeURIComponent(total)}&email=${encodeURIComponent(email)}`;
     } else {
       alert("เกิดข้อผิดพลาด: " + result.message);
     }
@@ -607,6 +614,7 @@ rentalForm.addEventListener("submit", async (e) => {
     alert("ส่งข้อมูลไม่สำเร็จ: " + err.message);
   }
 });
+
 
 // ✅ ฟังก์ชันแนบสลิปหลังโอน
 document.getElementById("upload-slip-btn").addEventListener("click", () => {
