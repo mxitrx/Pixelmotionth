@@ -44,7 +44,7 @@
   </div>
 
   <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwoSvxVZBC66dFKVipaMwSqO9hB42VchXZG8VuzMheMF99GTxw90DKu0Jvn7WSIUCrN/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzcKemZX_Q0CQC8_RdQUvMD-E9diq-ErMjtnU1vo7QE0m4jB_pTThx1oJVQ1yEEfZQK/exec";
 const PROMPTPAY_ID = "0972653945";
 
 // ✅ รับค่าจาก index.html
@@ -85,39 +85,52 @@ document.getElementById("slipForm").addEventListener("submit", async (e) => {
   const file = document.getElementById("slipFile").files[0];
   if (!file) return Swal.fire("❗ กรุณาแนบสลิป", "", "warning");
 
-  const formData = new FormData();
-  formData.append("action", "uploadSlip");
-  formData.append("file", file);
-  formData.append("custName", name);
-  formData.append("equipment", equipment);
-  formData.append("amount", amount);
-  formData.append("email", email);
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const base64Data = ev.target.result.split(",")[1]; // ตัด prefix ออก
+    const payload = {
+      action: "uploadSlip",
+      file: base64Data,
+      fileName: file.name,
+      mimeType: file.type,
+      custName: name,
+      equipment: equipment,
+      amount: amount,
+      email: email
+    };
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.textContent = "กำลังอัปโหลด...";
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.textContent = "กำลังอัปโหลด...";
 
-  try {
-    const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
-    const result = await res.json();
-    if (result.success || result.result === "success") {
-      Swal.fire({
-        title: "✅ ส่งสลิปสำเร็จ!",
-        text: "ระบบได้รับข้อมูลแล้ว",
-        icon: "success",
-        confirmButtonColor: "#ea580c",
-        confirmButtonText: "กลับหน้าแรก"
-      }).then(() => window.location.href = "index.html");
-    } else {
-      Swal.fire("❌ ไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด", "error");
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.success || result.result === "success") {
+        Swal.fire({
+          title: "✅ ส่งสลิปสำเร็จ!",
+          text: "ระบบได้รับข้อมูลแล้ว",
+          icon: "success",
+          confirmButtonColor: "#ea580c",
+          confirmButtonText: "กลับหน้าแรก"
+        }).then(() => window.location.href = "index.html");
+      } else {
+        Swal.fire("❌ ไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด", "error");
+      }
+    } catch (err) {
+      Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "ยืนยันการชำระเงิน";
     }
-  } catch (err) {
-    Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "ยืนยันการชำระเงิน";
-  }
+  };
+  reader.readAsDataURL(file);
 });
+
 </script>
 </body>
 </html>
