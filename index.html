@@ -643,19 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
   flatpickr("#endDate", { dateFormat: "Y-m-d", locale: "th", minDate: "today", onChange: calculateCost });
 });
     </script>
-
-<!-- Loading Screen -->
-<div id="page-loader" class="modal-overlay active" style="background:rgba(17,24,39,0.95)">
-  <div class="loader"></div>
-</div>
-
-<script>
-  // ซ่อน loading เมื่อโหลดข้อมูลเสร็จ
-  window.addEventListener("load", () => {
-    const loader = document.getElementById("page-loader");
-    setTimeout(() => loader.classList.remove("active"), 800);
-  });
-</script>    
+   
 
 </body>
 

@@ -10,7 +10,6 @@
 </head>
 
 <body class="bg-gray-900 text-gray-100 font-[Sarabun]">
-  <!-- หน้าล็อกอิน -->
   <div id="auth-screen" class="min-h-screen flex items-center justify-center">
     <div class="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-sm">
       <h2 class="text-2xl font-bold text-center mb-6">เข้าสู่ระบบผู้ดูแล</h2>
@@ -35,7 +34,6 @@
     </div>
   </div>
 
-  <!-- แผงควบคุม -->
   <div id="admin-panel" class="hidden p-6 max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold text-orange-400">ระบบจัดการเช่าอุปกรณ์</h1>
@@ -49,15 +47,14 @@
       </div>
     </div>
 
-    <!-- ปุ่มแท็บ -->
     <div class="flex flex-wrap gap-2 mb-6">
       <button class="tab-btn active" data-tab="equipment">อุปกรณ์</button>
       <button class="tab-btn" data-tab="logs">ประวัติการเช่า</button>
       <button class="tab-btn" data-tab="renter-list">รายชื่อผู้เช่า</button>
       <button class="tab-btn" data-tab="warehouse">อุปกรณ์ในโกดัง</button>
+
     </div>
 
-    <!-- แท็บจัดการอุปกรณ์ -->
     <div id="tab-equipment" class="tab-content">
       <h2 class="text-xl font-semibold mb-4">จัดการอุปกรณ์</h2>
       <div class="grid md:grid-cols-2 gap-8">
@@ -78,7 +75,6 @@
       </div>
     </div>
 
-    <!-- แท็บประวัติการเช่า -->
     <div id="tab-logs" class="tab-content hidden">
       <h2 class="text-xl font-semibold mb-4">ประวัติการเช่าทั้งหมด</h2>
       <div class="overflow-x-auto bg-gray-800 rounded-lg">
@@ -99,7 +95,6 @@
       </div>
     </div>
 
-    <!-- แท็บรายชื่อผู้เช่า -->
     <div id="tab-renter-list" class="tab-content hidden">
       <h2 class="text-xl font-semibold mb-4">รายชื่อผู้เช่าทั้งหมด</h2>
       <div class="overflow-x-auto bg-gray-800 rounded-lg">
@@ -117,62 +112,46 @@
       </div>
     </div>
 
-    <!-- แท็บอุปกรณ์ในโกดัง -->
     <div id="tab-warehouse" class="tab-content hidden">
-      <h2 class="text-xl font-semibold mb-4">อุปกรณ์ในโกดังทั้งหมด</h2>
-      <div class="overflow-x-auto bg-gray-800 rounded-lg">
-        <table class="min-w-full">
-          <thead class="bg-gray-700 text-gray-300 text-xs uppercase">
-            <tr>
-              <th class="px-3 py-2 text-left">ชื่ออุปกรณ์</th>
-              <th class="px-3 py-2 text-right">ราคาเช่าต่อวัน (บาท)</th>
-              <th class="px-3 py-2 text-center">จำนวนคงเหลือ</th>
-            </tr>
-          </thead>
-          <tbody id="warehouseTableBody"></tbody>
-        </table>
-      </div>
-    </div>
+  <h2 class="text-xl font-semibold mb-4">อุปกรณ์ในโกดังทั้งหมด</h2>
+  <div class="overflow-x-auto bg-gray-800 rounded-lg">
+    <table class="min-w-full">
+      <thead class="bg-gray-700 text-gray-300 text-xs uppercase">
+        <tr>
+          <th class="px-3 py-2 text-left">ชื่ออุปกรณ์</th>
+          <th class="px-3 py-2 text-right">ราคาเช่าต่อวัน (บาท)</th>
+          <th class="px-3 py-2 text-center">จำนวนคงเหลือ</th>
+        </tr>
+      </thead>
+      <tbody id="warehouseTableBody"></tbody>
+    </table>
   </div>
+</div>
 
-  <style>
-    .form-input { width: 100%; padding: .5rem; border-radius: .375rem; background-color: #374151; border: 1px solid #4b5563; color: #e5e7eb; }
-    .tab-btn { background: #374151; color: #e5e7eb; padding: .5rem 1rem; border-radius: .375rem; font-weight: 500; cursor: pointer; }
-    .tab-btn.active { background: #ea580c; color: white; }
-  </style>
-
-  <div id="page-loader" class="modal-overlay">
-    <div class="loader"></div>
   </div>
 
   <script>
+    // ---------------- CONFIG ----------------
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
     const ADMIN_USERNAME = "mxitrx";
     const ADMIN_PASSWORD = "mxitrx";
+    // ----------------------------------------
 
     const loginForm = document.getElementById("loginForm");
     const authScreen = document.getElementById("auth-screen");
     const adminPanel = document.getElementById("admin-panel");
     const logoutBtn = document.getElementById("logout-btn");
     const authError = document.getElementById("auth-error");
+
     const addEquipmentForm = document.getElementById("addEquipmentForm");
     const deleteEquipmentForm = document.getElementById("deleteEquipmentForm");
     const equipmentDeleteSelect = document.getElementById("equipmentDeleteSelect");
     const adminTableBody = document.getElementById("adminTableBody");
     const renterTableBody = document.getElementById("renterTableBody");
 
-    // ---------------- Loader ----------------
-    function showLoader() {
-      document.getElementById("page-loader").classList.add("active");
-    }
-    function hideLoader() {
-      document.getElementById("page-loader").classList.remove("active");
-    }
-
     // ---------------- Login ----------------
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      showLoader();
       const username = document.getElementById("admin-username").value;
       const password = document.getElementById("admin-password").value;
       if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
@@ -183,7 +162,6 @@
       } else {
         authError.classList.remove("hidden");
       }
-      hideLoader();
     });
 
     // ---------------- Auto Login ----------------
@@ -193,32 +171,34 @@
         adminPanel.classList.remove("hidden");
         initializeApp();
       }
-      setTimeout(() => hideLoader(), 800);
     });
 
     // ---------------- Logout ----------------
     logoutBtn.addEventListener("click", () => {
-      showLoader();
       localStorage.removeItem("adminLoggedIn");
       adminPanel.classList.add("hidden");
       authScreen.classList.remove("hidden");
-      hideLoader();
     });
 
     // ---------------- Tabs ----------------
     document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active", "bg-orange-600"));
-        document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
-        btn.classList.add("active", "bg-orange-600");
-        document.getElementById(`tab-${btn.dataset.tab}`).classList.remove("hidden");
-      });
-    });
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active", "bg-orange-600"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+    btn.classList.add("active", "bg-orange-600");
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove("hidden");
 
-    // ---------------- เพิ่ม/ลบ อุปกรณ์ ----------------
+    // ✅ ถ้าเปิดแท็บโกดัง ให้โหลดข้อมูลใหม่
+    if (btn.dataset.tab === "warehouse") {
+      fetchWarehouseList();
+    }
+  });
+});
+
+
+    // ---------------- ฟอร์มจัดการอุปกรณ์ ----------------
     addEquipmentForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      showLoader();
       const formData = new FormData(addEquipmentForm);
       formData.append("action", "addEquipment");
       formData.append("username", ADMIN_USERNAME);
@@ -227,14 +207,11 @@
       const data = await res.json();
       alert(data.message || "เพิ่มอุปกรณ์สำเร็จ");
       addEquipmentForm.reset();
-      await populateDeleteEquipmentDropdown();
-      await fetchWarehouseList();
-      hideLoader();
+      populateDeleteEquipmentDropdown();
     });
 
     deleteEquipmentForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      showLoader();
       const formData = new FormData(deleteEquipmentForm);
       formData.append("action", "deleteEquipment");
       formData.append("username", ADMIN_USERNAME);
@@ -242,20 +219,26 @@
       const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
       const data = await res.json();
       alert(data.message || "ลบอุปกรณ์สำเร็จ");
-      await populateDeleteEquipmentDropdown();
-      await fetchWarehouseList();
-      hideLoader();
+      populateDeleteEquipmentDropdown();
     });
 
-    // ---------------- ดึงข้อมูล ----------------
+    // ---------------- ดึงข้อมูลทั้งหมด ----------------
     async function fetchAdminLogs() {
       adminTableBody.innerHTML = "<tr><td colspan='7' class='p-4 text-center text-gray-400'>กำลังโหลด...</td></tr>";
       const res = await fetch(`${SCRIPT_URL}?action=getLogs`);
       const data = await res.json();
       adminTableBody.innerHTML = "";
+
+      const renterStats = {};
+
       data.forEach((row) => {
         const [ts, renter, address, phone, equipment, start, end, status, eventId, total] = row;
         const dateStr = new Date(ts).toLocaleString("th-TH");
+        const btn =
+          status === "เช่าอยู่"
+            ? `<button data-id="${eventId}" class="end-btn text-yellow-400 hover:text-yellow-300">สิ้นสุด</button>`
+            : `<button data-id="${eventId}" class="del-btn text-red-400 hover:text-red-300">ลบ</button>`;
+
         adminTableBody.innerHTML += `
           <tr class="border-b border-gray-700 text-sm">
             <td class="px-3 py-2">${dateStr}</td>
@@ -264,9 +247,7 @@
             <td class="px-3 py-2">${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}</td>
             <td class="px-3 py-2 text-right">${parseFloat(total || 0).toFixed(2)}</td>
             <td class="px-3 py-2">${status}</td>
-            <td class="px-3 py-2">${status === "เช่าอยู่"
-              ? `<button data-id="${eventId}" class="end-btn text-yellow-400 hover:text-yellow-300">สิ้นสุด</button>`
-              : `<button data-id="${eventId}" class="del-btn text-red-400 hover:text-red-300">ลบ</button>`}</td>
+            <td class="px-3 py-2">${btn}</td>
           </tr>`;
       });
     }
@@ -277,47 +258,129 @@
       equipmentDeleteSelect.innerHTML = data.map(e => `<option value="${e.name}">${e.name}</option>`).join("");
     }
 
+    async function initializeApp() {
+  await populateDeleteEquipmentDropdown();
+  await fetchAdminLogs();
+  await fetchWarehouseList(); // ✅ โหลดอุปกรณ์ในโกดังทันทีหลังเข้าสู่ระบบ
+}
+
+
     // ---------------- อุปกรณ์ในโกดัง ----------------
-    async function fetchWarehouseList() {
-      const container = document.getElementById("warehouseTableBody");
-      container.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>กำลังโหลดข้อมูล...</td></tr>";
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=getEquipment`);
-        const data = await res.json();
-        container.innerHTML = "";
-        if (!data || data.length === 0) {
-          container.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลอุปกรณ์</td></tr>";
-          return;
-        }
-        data.forEach(item => {
-          const name = item.name || "-";
-          const price = item.price ? parseFloat(item.price).toFixed(2) : "0.00";
-          const stock = item.stock || item.quantity || 0;
-          container.innerHTML += `
-            <tr class="border-b border-gray-700 text-sm">
-              <td class="px-3 py-2">${name}</td>
-              <td class="px-3 py-2 text-right">${price}</td>
-              <td class="px-3 py-2 text-center">${stock}</td>
-            </tr>`;
-        });
-      } catch (err) {
-        container.innerHTML = `<tr><td colspan='3' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
-      }
+async function fetchWarehouseList() {
+  const container = document.getElementById("warehouseTableBody");
+  container.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>กำลังโหลดข้อมูล...</td></tr>";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getEquipment`);
+    const data = await res.json();
+    container.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      container.innerHTML = "<tr><td colspan='3' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลอุปกรณ์</td></tr>";
+      return;
     }
 
-    // ---------------- เริ่มต้น ----------------
-    async function initializeApp() {
-      await populateDeleteEquipmentDropdown();
-      await fetchAdminLogs();
-      await fetchWarehouseList();
-    }
+    data.forEach(item => {
+      const name = item.name || "-";
+      const price = item.price ? parseFloat(item.price).toFixed(2) : "0.00";
+      const stock = item.stock || item.quantity || 0;
+      container.innerHTML += `
+        <tr class="border-b border-gray-700 text-sm">
+          <td class="px-3 py-2">${name}</td>
+          <td class="px-3 py-2 text-right">${price}</td>
+          <td class="px-3 py-2 text-center">${stock}</td>
+        </tr>`;
+    });
+  } catch (err) {
+    container.innerHTML = `<tr><td colspan='3' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${err.message}</td></tr>`;
+  }
+}
+
   </script>
 
   <style>
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 50; background: rgba(17,24,39,0.95); transition: opacity 0.3s ease; }
-    .modal-overlay.active { display: flex; opacity: 1; }
-    .loader { border: 6px solid #f3f3f3; border-top: 6px solid #ea580c; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .form-input { width: 100%; padding: .5rem; border-radius: .375rem; background-color: #374151; border: 1px solid #4b5563; color: #e5e7eb; }
+    .tab-btn { background: #374151; color: #e5e7eb; padding: .5rem 1rem; border-radius: .375rem; font-weight: 500; cursor: pointer; }
+    .tab-btn.active { background: #ea580c; color: white; }
   </style>
+
+  <div id="page-loader" class="modal-overlay active" style="background:rgba(17,24,39,0.95)">
+    <div class="loader"></div>
+  </div>
+
+  <script>
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("page-loader");
+      setTimeout(() => loader.classList.remove("active"), 800);
+    });
+  </script>
+
+  <!-- ✅ Loading Screen -->
+<style>
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    background: rgba(17, 24, 39, 0.95);
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+  .loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #ea580c;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+<div id="page-loader" class="modal-overlay">
+  <div class="loader"></div>
+</div>
+
+<script>
+  // ✅ ฟังก์ชันแสดง/ซ่อน Loader (ไม่ยุ่งกับโค้ดเดิม)
+  function showLoader() {
+    document.getElementById("page-loader").classList.add("active");
+  }
+  function hideLoader() {
+    document.getElementById("page-loader").classList.remove("active");
+  }
+
+  // ✅ ดักทุกฟอร์มในหน้าให้โชว์ Loader ตอนกด submit
+  document.querySelectorAll("form").forEach(f => {
+    f.addEventListener("submit", () => showLoader());
+  });
+
+  // ✅ ดักทุกปุ่มที่มีการคลิกแล้ว fetch เช่นปุ่มลบ/สิ้นสุด
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest("button, a");
+    if (!target) return;
+    const text = target.textContent.trim();
+    if (["สิ้นสุด", "ลบ", "เข้าสู่ระบบ", "ออกจากระบบ"].some(t => text.includes(t))) {
+      showLoader();
+      setTimeout(hideLoader, 1500); // ซ่อนอัตโนมัติหลัง 1.5 วินาที (กันค้าง)
+    }
+  });
+
+  // ✅ โหลดเสร็จ ซ่อน loader
+  window.addEventListener("load", () => {
+    setTimeout(() => hideLoader(), 800);
+  });
+  
+</script>
+
 </body>
 </html>
