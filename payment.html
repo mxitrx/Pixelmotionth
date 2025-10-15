@@ -6,6 +6,7 @@
   <title>ยืนยันการชำระเงิน | ระบบเช่าอุปกรณ์</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 
 <body class="bg-gray-900 text-gray-100 font-[Sarabun] flex items-center justify-center min-h-screen p-4">
@@ -13,7 +14,7 @@
     <h1 class="text-2xl font-bold text-center text-orange-400 mb-6">ชำระเงินเพื่อยืนยันการเช่า</h1>
     
     <div id="qr-section" class="text-center mb-6">
-      <img id="promptpay-qr" src="" alt="PromptPay QR" class="w-64 h-64 mx-auto border rounded-lg mb-4">
+      <div id="promptpay-qr" class="w-64 h-64 mx-auto border rounded-lg mb-4 bg-white flex justify-center items-center"></div>
       <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
       <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
     </div>
@@ -37,102 +38,189 @@
   </div>
 
   <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
-const PROMPTPAY_ID = "0972653945";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
+    const PROMPTPAY_ID = "0972653945";
 
-// รับค่าพารามิเตอร์จาก URL
-const params = new URLSearchParams(window.location.search);
-const name = params.get("name") || "";
-const equipment = params.get("equipment") || "";
-const amount = parseFloat(params.get("amount")) || 0;
-const email = params.get("email") || "";
+    // รับค่าพารามิเตอร์จาก URL
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "";
+    const equipment = params.get("equipment") || "";
+    const amount = parseFloat(params.get("amount")) || 0;
+    const email = params.get("email") || "";
 
-// กำหนดค่าฟอร์ม
-document.getElementById("renterName").value = name;
-document.getElementById("equipment").value = equipment;
-document.getElementById("amountValue").value = amount;
-document.getElementById("amount").textContent = amount.toFixed(2);
+    // กำหนดค่าฟอร์ม
+    document.getElementById("renterName").value = name;
+    document.getElementById("equipment").value = equipment;
+    document.getElementById("amountValue").value = amount;
+    document.getElementById("amount").textContent = amount.toFixed(2);
 
-// ✅ ฟังก์ชันสร้าง QR แบบ Base64 (โหลดผ่าน Google Script Proxy)
-async function generatePromptPayQR() {
-  if (!PROMPTPAY_ID || amount <= 0) {
-    document.getElementById("promptpay-qr").alt = "ไม่สามารถสร้าง QR ได้";
-    return;
-  }
+    // --- ส่วนที่แก้ไข: สร้าง QR Code โดยตรง ---
 
-  try {
-    // ✅ ดึงผ่าน Apps Script Proxy
-    const res = await fetch(`${SCRIPT_URL}?action=getPromptPayQR&id=${PROMPTPAY_ID}&amount=${amount.toFixed(2)}`);
-    if (!res.ok) throw new Error("โหลดไม่สำเร็จ");
-    const text = await res.text();
-
-    if (text.startsWith("data:image")) {
-      document.getElementById("promptpay-qr").src = text;
-    } else {
-      throw new Error("ข้อมูลไม่ถูกต้อง");
-    }
-  } catch (err) {
-    console.error("PromptPay QR Error:", err);
-    document.getElementById("promptpay-qr").alt = "ไม่สามารถโหลด QR ได้ ❌";
-  }
-}
-
-
-// ✅ ฟังก์ชันส่งสลิปพร้อม Auto Verify
-document.getElementById("slipForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const file = document.getElementById("slipFile").files[0];
-  if (!file) return alert("กรุณาแนบไฟล์สลิปก่อนส่ง");
-
-  const formData = new FormData();
-  formData.append("action", "uploadSlip");
-  formData.append("file", file);
-  formData.append("custName", name);
-  formData.append("equipment", equipment);
-  formData.append("amount", amount);
-  formData.append("email", email);
-
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.textContent = "กำลังอัปโหลด...";
-
-  try {
-    const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
-    const result = await res.json();
-
-    if (result.success || result.result === "success") {
-      if (result.verified === true) {
-        document.getElementById("message").textContent = "✅ ยืนยันยอดชำระถูกต้อง!";
-      } else {
-        document.getElementById("message").textContent = "⚠️ ได้รับสลิปแล้ว (รอตรวจสอบ)";
+    // ฟังก์ชันสร้าง Payload ของ PromptPay ตามมาตรฐาน
+    function generatePayload(id, amount) {
+      const idType = id.length === 10 ? '01' : '02'; // 01 for mobile, 02 for national ID/e-wallet
+      const formattedId = id.replace(/-/g, '');
+      const data = [
+        '000201',
+        '010212', // Dynamic QR
+        `29370016A000000677010111${idType}${('0' + formattedId.length).slice(-2)}${formattedId}`,
+        '5802TH',
+        `54${('0' + amount.toFixed(2).length).slice(-2)}${amount.toFixed(2)}`,
+        '5303764' // THB currency code
+      ];
+      const payload = data.join('');
+      
+      // CRC16 Checksum Calculation
+      let crc = 0xFFFF;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        }
       }
-      document.getElementById("message").classList.remove("hidden");
-      btn.textContent = "ส่งแล้ว ✅";
-    } else {
-      alert("เกิดข้อผิดพลาด: " + (result.message || "ไม่ทราบสาเหตุ"));
-      btn.textContent = "ลองใหม่";
+      const checksum = ('0000' + (crc & 0xFFFF).toString(16).toUpperCase()).slice(-4);
+      return `${payload}6304${checksum}`;
     }
-  } catch (err) {
-    alert("ส่งไม่สำเร็จ: " + err.message);
-    btn.textContent = "ลองใหม่";
-  } finally {
-    btn.disabled = false;
+
+    // ฟังก์ชันสร้างและแสดง QR Code
+    function generatePromptPayQR() {
+      const qrContainer = document.getElementById("promptpay-qr");
+      qrContainer.innerHTML = ''; // เคลียร์ QR เก่าทิ้ง
+      if (!PROMPTPAY_ID || amount <= 0) {
+        qrContainer.textContent = "ไม่สามารถสร้าง QR ได้";
+        return;
+      }
+      
+      const payload = generatePayload(PROMPTPAY_ID, amount);
+      new QRCode(qrContainer, {
+        text: payload,
+        width: 240,
+        height: 240,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    // --- สิ้นสุดส่วนที่แก้ไข ---
+
+
+    // ฟังก์ชันส่งสลิป (เหมือนเดิม)
+    document.getElementById("slipForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const file = document.getElementById("slipFile").files[0];
+      if (!file) return alert("กรุณาแนบไฟล์สลิปก่อนส่ง");
+
+      const formData = new FormData();
+      formData.append("action", "uploadSlip");
+      formData.append("file", file);
+      formData.append("custName", name);
+      formData.append("equipment", equipment);
+      formData.append("amount", amount);
+      formData.append("email", email);
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "กำลังอัปโหลด...";
+
+      try {
+        const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
+        const result = await res.json();
+
+        if (result.success || result.result === "success") {
+          if (result.verified === true) {
+            document.getElementById("message").textContent = "✅ ยืนยันยอดชำระถูกต้อง!";
+          } else {
+            document.getElementById("message").textContent = "⚠️ ได้รับสลิปแล้ว (รอตรวจสอบ)";
+          }
+          document.getElementById("message").classList.remove("hidden");
+          btn.textContent = "ส่งแล้ว ✅";
+        } else {
+          alert("เกิดข้อผิดพลาด: " + (result.message || "ไม่ทราบสาเหตุ"));
+          btn.textContent = "ลองใหม่";
+        }
+      } catch (err) {
+        alert("ส่งไม่สำเร็จ: " + err.message);
+        btn.textContent = "ลองใหม่";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // เรียกใช้ฟังก์ชันสร้าง QR Code เมื่อหน้าเว็บโหลด
+    generatePromptPayQR();
+  </script>
+
+  <div id="page-loader" class="modal-overlay active" style="background:rgba(17,24,39,0.95)">
+    <div class="loader"></div>
+  </div>
+
+  <script>
+    // ซ่อน loading เมื่อโหลดข้อมูลเสร็จ
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("page-loader");
+      setTimeout(() => loader.classList.remove("active"), 800);
+    });
+
+    
+  </script>
+
+<!-- ✅ Loading Screen -->
+<style>
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    background: rgba(17, 24, 39, 0.95);
+    transition: opacity 0.3s ease;
   }
-});
+  .modal-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+  .loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #ea580c;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
 
-generatePromptPayQR();
-</script>
-
-<!-- Loading Screen -->
-<div id="page-loader" class="modal-overlay active" style="background:rgba(17,24,39,0.95)">
+<div id="page-loader" class="modal-overlay">
   <div class="loader"></div>
 </div>
 
 <script>
-  // ซ่อน loading เมื่อโหลดข้อมูลเสร็จ
+  // ✅ ฟังก์ชันแสดง/ซ่อน Loader
+  function showLoader() {
+    document.getElementById("page-loader").classList.add("active");
+  }
+  function hideLoader() {
+    document.getElementById("page-loader").classList.remove("active");
+  }
+
+  // ✅ แสดง Loader ตอนกด submit ฟอร์มส่งสลิป
+  document.addEventListener("DOMContentLoaded", () => {
+    const slipForm = document.getElementById("slipForm");
+    if (slipForm) {
+      slipForm.addEventListener("submit", () => {
+        showLoader();
+        // ป้องกัน loader ค้าง ถ้า server ไม่ตอบภายใน 10 วิ จะซ่อนอัตโนมัติ
+        setTimeout(() => hideLoader(), 10000);
+      });
+    }
+  });
+
+  // ✅ ซ่อน Loader เมื่อหน้าโหลดเสร็จ
   window.addEventListener("load", () => {
-    const loader = document.getElementById("page-loader");
-    setTimeout(() => loader.classList.remove("active"), 800);
+    setTimeout(() => hideLoader(), 800);
   });
 </script>
 
