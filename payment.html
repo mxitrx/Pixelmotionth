@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ยืนยันการชำระเงิน | ระบบเช่าอุปกรณ์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-[Sarabun] flex items-center justify-center min-h-screen p-4">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+    <h1 class="text-2xl font-bold text-center text-orange-400 mb-6">ชำระเงินเพื่อยืนยันการเช่า</h1>
+    
+    <div id="qr-section" class="text-center mb-6">
+      <img id="promptpay-qr" src="" alt="PromptPay QR" class="w-64 h-64 mx-auto border rounded-lg mb-4">
+      <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
+      <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
+    </div>
+
+    <form id="slipForm" class="space-y-4">
+      <input type="hidden" id="renterName" name="custName">
+      <input type="hidden" id="equipment" name="equipment">
+      <input type="hidden" id="amountValue" name="amount">
+
+      <div>
+        <label class="block mb-2 text-gray-300">แนบสลิปการโอนเงิน</label>
+        <input type="file" id="slipFile" accept="image/*" class="w-full bg-gray-700 border border-gray-600 p-2 rounded">
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded">
+        ยืนยันการชำระเงิน
+      </button>
+    </form>
+
+    <p id="message" class="text-center mt-4 text-green-400 hidden">✅ ส่งสลิปเรียบร้อยแล้ว!</p>
+  </div>
+
+  <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXzRrdY5kqTXW6_EI1z5_ioVOdE7GqIXl0UOjqoWoEgT9t98c0bsaew2auc9tp9D0/exec";
+const PROMPTPAY_ID = "0972653945";
+
+// รับค่าพารามิเตอร์จาก URL
+const params = new URLSearchParams(window.location.search);
+const name = params.get("name") || "";
+const equipment = params.get("equipment") || "";
+const amount = parseFloat(params.get("amount")) || 0;
+const email = params.get("email") || "";
+
+// กำหนดค่าฟอร์ม
+document.getElementById("renterName").value = name;
+document.getElementById("equipment").value = equipment;
+document.getElementById("amountValue").value = amount;
+document.getElementById("amount").textContent = amount.toFixed(2);
+
+// ✅ ฟังก์ชันสร้าง QR แบบ Base64 (โหลดผ่าน Google Script Proxy)
+async function generatePromptPayQR() {
+  if (!PROMPTPAY_ID || amount <= 0) {
+    document.getElementById("promptpay-qr").alt = "ไม่สามารถสร้าง QR ได้";
+    return;
+  }
+
+  try {
+    // ✅ ดึงผ่าน Apps Script Proxy
+    const res = await fetch(`${SCRIPT_URL}?action=getPromptPayQR&id=${PROMPTPAY_ID}&amount=${amount.toFixed(2)}`);
+    if (!res.ok) throw new Error("โหลดไม่สำเร็จ");
+    const text = await res.text();
+
+    if (text.startsWith("data:image")) {
+      document.getElementById("promptpay-qr").src = text;
+    } else {
+      throw new Error("ข้อมูลไม่ถูกต้อง");
+    }
+  } catch (err) {
+    console.error("PromptPay QR Error:", err);
+    document.getElementById("promptpay-qr").alt = "ไม่สามารถโหลด QR ได้ ❌";
+  }
+}
+
+
+// ✅ ฟังก์ชันส่งสลิปพร้อม Auto Verify
+document.getElementById("slipForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = document.getElementById("slipFile").files[0];
+  if (!file) return alert("กรุณาแนบไฟล์สลิปก่อนส่ง");
+
+  const formData = new FormData();
+  formData.append("action", "uploadSlip");
+  formData.append("file", file);
+  formData.append("custName", name);
+  formData.append("equipment", equipment);
+  formData.append("amount", amount);
+  formData.append("email", email);
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "กำลังอัปโหลด...";
+
+  try {
+    const res = await fetch(SCRIPT_URL, { method: "POST", body: formData });
+    const result = await res.json();
+
+    if (result.success || result.result === "success") {
+      if (result.verified === true) {
+        document.getElementById("message").textContent = "✅ ยืนยันยอดชำระถูกต้อง!";
+      } else {
+        document.getElementById("message").textContent = "⚠️ ได้รับสลิปแล้ว (รอตรวจสอบ)";
+      }
+      document.getElementById("message").classList.remove("hidden");
+      btn.textContent = "ส่งแล้ว ✅";
+    } else {
+      alert("เกิดข้อผิดพลาด: " + (result.message || "ไม่ทราบสาเหตุ"));
+      btn.textContent = "ลองใหม่";
+    }
+  } catch (err) {
+    alert("ส่งไม่สำเร็จ: " + err.message);
+    btn.textContent = "ลองใหม่";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+generatePromptPayQR();
+</script>
+
+<!-- Loading Screen -->
+<div id="page-loader" class="modal-overlay active" style="background:rgba(17,24,39,0.95)">
+  <div class="loader"></div>
+</div>
+
+<script>
+  // ซ่อน loading เมื่อโหลดข้อมูลเสร็จ
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("page-loader");
+    setTimeout(() => loader.classList.remove("active"), 800);
+  });
+</script>
+
+</body>
+</html>
