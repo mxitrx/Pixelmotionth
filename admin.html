@@ -39,10 +39,10 @@
       <h1 class="text-3xl font-bold text-orange-400">ระบบจัดการเช่าอุปกรณ์</h1>
       <div class="flex items-center gap-3">
         <a href="index.html" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-          <i class="fas fa-home"></i> กลับหน้าแรก
+          <i class="fas fa-home"></i>🏠️ กลับหน้าแรก
         </a>
         <button id="logout-btn" class="bg-red-600 px-4 py-2 rounded hover:bg-red-700 flex items-center gap-2">
-          <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+          <i class="fas fa-sign-out-alt"></i>🚪 ออกจากระบบ
         </button>
       </div>
     </div>
@@ -52,6 +52,8 @@
       <button class="tab-btn" data-tab="logs">ประวัติการเช่า</button>
       <button class="tab-btn" data-tab="renter-list">รายชื่อผู้เช่า</button>
       <button class="tab-btn" data-tab="warehouse">อุปกรณ์ในโกดัง</button>
+      <button class="tab-btn" data-tab="finance">การเงิน</button>
+
 
     </div>
 
@@ -128,11 +130,39 @@
   </div>
 </div>
 
+<!-- ✅ แท็บการเงิน -->
+<div id="tab-finance" class="tab-content hidden">
+  <h2 class="text-xl font-semibold mb-4">รายการการชำระเงิน</h2>
+  <div class="overflow-x-auto bg-gray-800 rounded-lg">
+    <table class="min-w-full">
+      <thead class="bg-gray-700 text-gray-300 text-xs uppercase">
+        <tr>
+          <th class="px-3 py-2">วันที่</th>
+          <th class="px-3 py-2">ผู้เช่า</th>
+          <th class="px-3 py-2">ยอด (บาท)</th>
+          <th class="px-3 py-2">สถานะ</th>
+          <th class="px-3 py-2">สลิป</th>
+        </tr>
+      </thead>
+      <tbody id="financeTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ✅ Modal แสดงสลิป -->
+<div id="slipModal" class="fixed inset-0 bg-black/80 flex justify-center items-center hidden z-50">
+  <div class="bg-gray-900 p-4 rounded-lg max-w-md w-full relative">
+    <button onclick="closeSlipModal()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-xl">&times;</button>
+    <img id="slipImage" src="" alt="Slip" class="w-full rounded-lg" />
+  </div>
+</div>
+
+
   </div>
 
   <script>
     // ---------------- CONFIG ----------------
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzcKemZX_Q0CQC8_RdQUvMD-E9diq-ErMjtnU1vo7QE0m4jB_pTThx1oJVQ1yEEfZQK/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8yvNaKw9BpY41s870l8SRWSNd8BFEtrCm1nAyJ_PZfVam4_TaVKtBahrHeDcwK_4d/exec";
     const ADMIN_USERNAME = "mxitrx";
     const ADMIN_PASSWORD = "mxitrx";
     // ----------------------------------------
@@ -187,6 +217,10 @@
     document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
     btn.classList.add("active", "bg-orange-600");
     document.getElementById(`tab-${btn.dataset.tab}`).classList.remove("hidden");
+    if (btn.dataset.tab === "renter-list") {
+  fetchRenterList();
+}
+
 
     // ✅ ถ้าเปิดแท็บโกดัง ให้โหลดข้อมูลใหม่
     if (btn.dataset.tab === "warehouse") {
@@ -241,13 +275,13 @@
 
         adminTableBody.innerHTML += `
           <tr class="border-b border-gray-700 text-sm">
-            <td class="px-3 py-2">${dateStr}</td>
-            <td class="px-3 py-2">${renter}<br><span class="text-xs text-gray-400">โทร: 0${phone}</span></td>
-            <td class="px-3 py-2">${equipment}</td>
-            <td class="px-3 py-2">${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}</td>
-            <td class="px-3 py-2 text-right">${parseFloat(total || 0).toFixed(2)}</td>
-            <td class="px-3 py-2">${status}</td>
-            <td class="px-3 py-2">${btn}</td>
+            <td class="px-3 py-2 text-center">${dateStr}</td>
+            <td class="px-3 py-2 text-center">${renter}<br><span class="text-xs text-gray-400">โทร: 0${phone}</span></td>
+            <td class="px-3 py-2 text-center">${equipment}</td>
+            <td class="px-3 py-2 text-center">${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}</td>
+            <td class="px-3 py-2 text-center">${parseFloat(total || 0).toFixed(2)}</td>
+            <td class="px-3 py-2 text-center">${status}</td>
+            <td class="px-3 py-2 text-center">${btn}</td>
           </tr>`;
       });
     }
@@ -295,6 +329,89 @@ async function fetchWarehouseList() {
       <td class="px-3 py-2 text-right">${price}</td>
       <td class="px-3 py-2 text-center">${stock}</td>
     </tr>`;
+
+    const financeTableBody = document.getElementById("financeTableBody");
+
+async function fetchFinanceData() {
+  financeTableBody.innerHTML = "<tr><td colspan='5' class='p-4 text-center text-gray-400'>กำลังโหลด...</td></tr>";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getFinance`);
+    const data = await res.json();
+    financeTableBody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      financeTableBody.innerHTML = "<tr><td colspan='5' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลการเงิน</td></tr>";
+      return;
+    }
+    
+  } catch (err) {
+    financeTableBody.innerHTML = `<tr><td colspan='5' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+  }
+}
+
+// ---------------- ดึงรายชื่อผู้เช่า ----------------
+async function fetchRenterList() {
+  const tableBody = document.getElementById("renterTableBody");
+  tableBody.innerHTML = "<tr><td colspan='4' class='p-4 text-center text-gray-400'>กำลังโหลด...</td></tr>";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getLogs`);
+    const data = await res.json();
+    tableBody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      tableBody.innerHTML = "<tr><td colspan='4' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลผู้เช่า</td></tr>";
+      return;
+    }
+
+    const renters = {};
+
+    // ✅ รวมข้อมูลตามชื่อผู้เช่า
+    data.forEach(row => {
+      const name = row[1] || "-";
+      const phone = row[3] || "-";
+      const totalCost = parseFloat(row[9] || 0);
+
+      if (!renters[name]) {
+        renters[name] = { phone, totalCost, count: 1 };
+      } else {
+        renters[name].totalCost += totalCost;
+        renters[name].count++;
+      }
+    });
+
+    // ✅ แสดงผลบนตาราง
+    Object.entries(renters).forEach(([name, info]) => {
+      tableBody.innerHTML += `
+        <tr class="border-b border-gray-700 text-sm">
+          <td class="px-3 py-2">${name}</td>
+          <td class="px-3 py-2">${info.phone}</td>
+          <td class="px-3 py-2 text-center">${info.count}</td>
+          <td class="px-3 py-2 text-right">${info.totalCost.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan='4' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+  }
+}
+
+
+function showSlip(url) {
+  document.getElementById("slipImage").src = url;
+  document.getElementById("slipModal").classList.remove("hidden");
+}
+
+function closeSlipModal() {
+  document.getElementById("slipModal").classList.add("hidden");
+  document.getElementById("slipImage").src = "";
+}
+
+// ✅ โหลดข้อมูลเมื่อกดแท็บ
+document.querySelector('[data-tab="finance"]').addEventListener("click", fetchFinanceData);
+
 });
 
   } catch (err) {
@@ -387,6 +504,170 @@ async function fetchWarehouseList() {
   });
   
 </script>
+
+<script>
+  const financeTableBody = document.getElementById("financeTableBody");
+
+  async function fetchFinanceData() {
+  financeTableBody.innerHTML = "<tr><td colspan='5' class='p-4 text-center text-gray-400'>กำลังโหลด...</td></tr>";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getFinance`);
+    // อ่านเป็น text ก่อน เผื่อ server ส่ง string แทน JSON
+    const text = await res.text();
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (err) {
+      // ถ้า parse ไม่ได้ ให้โยนข้อความดิบไปตรวจสอบ
+      throw new Error("Response is not valid JSON: " + text);
+    }
+
+    // ตอนนี้ json อาจเป็น object หรือ array — ปรับให้เป็น array เสมอ
+    let data = json;
+    if (!Array.isArray(data)) {
+      // ถ้า server ส่ง { error: "..." }
+      if (data.error) throw new Error(data.error);
+
+      // ถ้า server ส่ง { values: [...] } หรือ {data: [...]}
+      if (Array.isArray(data.values)) data = data.values;
+      else if (Array.isArray(data.data)) data = data.data;
+      else {
+        // ถ้าเป็น object แบบ mapping ให้เอา value เป็น array
+        const maybeArray = Object.values(data);
+        if (Array.isArray(maybeArray) && maybeArray.length > 0) {
+          data = maybeArray;
+        } else {
+          throw new Error("ไม่ได้รับข้อมูลรายการการเงินในรูปแบบที่คาดไว้");
+        }
+      }
+    }
+
+    // data เป็น Array แล้ว — ตรวจสอบอีกครั้ง
+    if (!data || data.length === 0) {
+      financeTableBody.innerHTML = "<tr><td colspan='5' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลการเงิน</td></tr>";
+      return;
+    }
+
+    // ถ้า row เป็น array ของค่า: [timestamp, renter, amount, status, slipUrl]
+    financeTableBody.innerHTML = "";
+    data.forEach(row => {
+      // ป้องกันกรณี row เป็น object แทน array
+      let timestamp, renter, amount, status, slipUrl;
+      if (Array.isArray(row)) {
+        timestamp = row[0]; renter = row[1]; amount = row[2]; status = row[3]; slipUrl = row[4];
+      } else {
+        // กรณี row เป็น object เช่น {timestamp:..., renter:..., amount:..., slipUrl:...}
+        timestamp = row.timestamp || row[0] || row.date || "";
+        renter = row.renter || row.name || row[1] || "";
+        amount = row.amount || row.total || row[2] || 0;
+        status = row.status || row[3] || "";
+        slipUrl = row.slipUrl || row.fileUrl || row.slip || "";
+      }
+
+      // แสดงวันที่อย่างปลอดภัย
+      let dateStr = "";
+      try {
+        dateStr = timestamp ? new Date(timestamp).toLocaleString("th-TH") : "-";
+      } catch (e) {
+        dateStr = String(timestamp);
+      }
+
+      financeTableBody.innerHTML += `
+        <tr class="border-b border-gray-700 text-sm">
+          <td class="px-3 py-2 text-center">${dateStr}</td>
+          <td class="px-3 py-2 text-center">${renter || "-"}</td>
+          <td class="px-3 py-2 text-center">${(parseFloat(amount) || 0).toFixed(2)}</td>
+          <td class="px-3 py-2 text-center">${status || "-"}</td>
+          <td class="px-3 py-2 text-center">
+            ${slipUrl ? `<button onclick="showSlip('${slipUrl}')" class="text-orange-400 hover:text-orange-300">ดูสลิป</button>` : '-'}
+          </td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    console.error("fetchFinanceData error:", err);
+    financeTableBody.innerHTML = `<tr><td colspan='5' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+  }
+}
+
+
+  function showSlip(url) {
+    document.getElementById("slipImage").src = url;
+    document.getElementById("slipModal").classList.remove("hidden");
+  }
+
+  function closeSlipModal() {
+    document.getElementById("slipModal").classList.add("hidden");
+    document.getElementById("slipImage").src = "";
+  }
+
+  // โหลดข้อมูลเมื่อกดแท็บ
+  document.querySelector('[data-tab="finance"]').addEventListener("click", fetchFinanceData);
+</script>
+
+<script>
+// ---------------- ดึงรายชื่อผู้เช่า ----------------
+async function fetchRenterList() {
+  const tableBody = document.getElementById("renterTableBody");
+  tableBody.innerHTML = "<tr><td colspan='4' class='p-4 text-center text-gray-400'>กำลังโหลด...</td></tr>";
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getLogs`);
+    const data = await res.json();
+    tableBody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      tableBody.innerHTML = "<tr><td colspan='4' class='p-4 text-center text-gray-400'>ไม่มีข้อมูลผู้เช่า</td></tr>";
+      return;
+    }
+
+    const renters = {};
+
+    // ✅ รวมข้อมูลตามชื่อผู้เช่า
+    data.forEach(row => {
+      const name = row[1] || "-";
+      const phone = row[3] || "-";
+      const totalCost = parseFloat(row[9] || 0);
+
+      if (!renters[name]) {
+        renters[name] = { phone, totalCost, count: 1 };
+      } else {
+        renters[name].totalCost += totalCost;
+        renters[name].count++;
+      }
+    });
+
+    // ✅ แสดงผลบนตาราง
+    Object.entries(renters).forEach(([name, info]) => {
+      tableBody.innerHTML += `
+        <tr class="border-b border-gray-700 text-sm">
+          <td class="px-3 py-2 text-center">${name}</td>
+          <td class="px-3 py-2 text-center">0${info.phone}</td>
+          <td class="px-3 py-2 text-center">${info.count}</td>
+          <td class="px-3 py-2 text-center">${info.totalCost.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan='4' class='p-4 text-center text-red-400'>เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+  }
+}
+
+// ✅ เรียกใช้เมื่อกดแท็บรายชื่อผู้เช่า
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.tab === "renter-list") {
+      fetchRenterList();
+    }
+  });
+});
+</script>
+
 
 </body>
 </html>

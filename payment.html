@@ -5,29 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ยืนยันการชำระเงิน | ระบบเช่าอุปกรณ์</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-900 text-gray-100 font-[Sarabun] flex items-center justify-center min-h-screen p-4">
   <div class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
     <h1 class="text-2xl font-bold text-center text-orange-400 mb-6">ชำระเงินเพื่อยืนยันการเช่า</h1>
 
+    <!-- ✅ QR -->
     <div id="qr-section" class="text-center mb-6">
-  <img id="promptpay-img" class="w-64 h-64 mx-auto border rounded-lg mb-4 bg-white" alt="PromptPay QR">
-  <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
-  <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
-</div>
+      <img id="promptpay-img" src="qr.jpg" class="w-64 h-64 mx-auto border rounded-lg mb-4 bg-white object-contain" alt="PromptPay QR">
+      <p>ยอดชำระทั้งหมด: <strong id="amount" class="text-orange-500 text-xl"></strong> บาท</p>
+      <p class="text-sm text-gray-400 mt-2">กรุณาโอนเงินผ่าน PromptPay แล้วแนบสลิปด้านล่าง</p>
+    </div>
 
     <form id="slipForm" class="space-y-4">
-      <input type="hidden" id="renterName" name="custName">
-      <input type="hidden" id="equipment" name="equipment">
-      <input type="hidden" id="amountValue" name="amount">
+      <input type="hidden" id="custName">
+      <input type="hidden" id="equipment">
+      <input type="hidden" id="amountValue">
+      <input type="hidden" id="email">
 
       <div>
         <label class="block mb-2 text-gray-300">แนบสลิปการโอนเงิน</label>
-        <input type="file" id="slipFile" accept="image/*" class="w-full bg-gray-700 border border-gray-600 p-2 rounded">
+        <input type="file" id="slipFile" accept="image/*" required class="w-full bg-gray-700 border border-gray-600 p-2 rounded">
         <img id="slipPreview" class="mt-3 hidden w-full rounded border border-gray-600" alt="สลิปตัวอย่าง" />
       </div>
 
@@ -38,99 +39,99 @@
 
     <div class="text-center mt-6">
       <a href="index.html" class="text-orange-400 hover:text-orange-300 text-sm transition-colors duration-200">
-        <i class="fas fa-arrow-left mr-1"></i> กลับไปหน้าแรก
+        ← กลับไปหน้าแรก
       </a>
     </div>
   </div>
 
   <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzcKemZX_Q0CQC8_RdQUvMD-E9diq-ErMjtnU1vo7QE0m4jB_pTThx1oJVQ1yEEfZQK/exec";
-const PROMPTPAY_ID = "0972653945";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzcKemZX_Q0CQC8_RdQUvMD-E9diq-ErMjtnU1vo7QE0m4jB_pTThx1oJVQ1yEEfZQK/exec";
 
-// ✅ รับค่าจาก index.html
-const params = new URLSearchParams(window.location.search);
-const name = params.get("name") || "ลูกค้าไม่ระบุชื่อ";
-const equipment = params.get("equipment") || "ไม่ระบุอุปกรณ์";
-const amount = parseFloat(params.get("amount")) || 0;
-const email = params.get("email") || "";
+  // ✅ รับค่าจาก URL
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get("name") || "ลูกค้าไม่ระบุชื่อ";
+  const equipment = params.get("equipment") || "ไม่ระบุอุปกรณ์";
+  const amount = parseFloat(params.get("amount")) || 0;
+  const email = params.get("email") || "";
 
-// ✅ แสดงข้อมูลในหน้า
-document.getElementById("renterName").value = name;
-document.getElementById("equipment").value = equipment;
-document.getElementById("amountValue").value = amount;
-document.getElementById("amount").textContent = amount.toFixed(2);
+  // ✅ แสดงข้อมูลในหน้า
+  document.getElementById("custName").value = name;
+  document.getElementById("equipment").value = equipment;
+  document.getElementById("amountValue").value = amount;
+  document.getElementById("email").value = email;
+  document.getElementById("amount").textContent = amount.toFixed(2);
 
-// ✅ แสดง QR จริงจาก promptpay.io
-document.getElementById("promptpay-img").src = `https://promptpay.io/${PROMPTPAY_ID}/${amount}.png`;
+  // ✅ Preview รูปก่อนอัปโหลด
+  const slipInput = document.getElementById("slipFile");
+  const slipPreview = document.getElementById("slipPreview");
+  slipInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        slipPreview.src = ev.target.result;
+        slipPreview.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    } else {
+      slipPreview.classList.add("hidden");
+    }
+  });
 
-// ✅ แสดง Preview สลิป
-document.getElementById("slipFile").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  const preview = document.getElementById("slipPreview");
-  if (file) {
+  // ✅ ส่งสลิปไปยัง Google Apps Script แบบ base64
+  document.getElementById("slipForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const file = slipInput.files[0];
+    if (!file) {
+      Swal.fire("❗ กรุณาแนบสลิป", "", "warning");
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      preview.src = ev.target.result;
-      preview.classList.remove("hidden");
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.classList.add("hidden");
-  }
-});
+    reader.onload = async (ev) => {
+      const base64Data = ev.target.result.split(",")[1];
+      const payload = {
+        action: "uploadSlip",
+        file: base64Data,
+        fileName: file.name,
+        mimeType: file.type,
+        custName: name,
+        equipment: equipment,
+        amount: amount,
+        email: email
+      };
 
-// ✅ อัปโหลดสลิป
-document.getElementById("slipForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const file = document.getElementById("slipFile").files[0];
-  if (!file) return Swal.fire("❗ กรุณาแนบสลิป", "", "warning");
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "กำลังอัปโหลด...";
 
-  const reader = new FileReader();
-  reader.onload = async (ev) => {
-    const base64Data = ev.target.result.split(",")[1]; // ตัด prefix ออก
-    const payload = {
-      action: "uploadSlip",
-      file: base64Data,
-      fileName: file.name,
-      mimeType: file.type,
-      custName: name,
-      equipment: equipment,
-      amount: amount,
-      email: email
-    };
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          mode: "no-cors" // ✅ ปิด CORS
+        });
 
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.textContent = "กำลังอัปโหลด...";
-
-    try {
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-      if (result.success || result.result === "success") {
         Swal.fire({
           title: "✅ ส่งสลิปสำเร็จ!",
-          text: "ระบบได้รับข้อมูลแล้ว",
+          text: "ระบบได้รับข้อมูลของคุณแล้ว",
           icon: "success",
           confirmButtonColor: "#ea580c",
           confirmButtonText: "กลับหน้าแรก"
         }).then(() => window.location.href = "index.html");
-      } else {
-        Swal.fire("❌ ไม่สำเร็จ", result.message || "เกิดข้อผิดพลาด", "error");
-      }
-    } catch (err) {
-      Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "ยืนยันการชำระเงิน";
-    }
-  };
-  reader.readAsDataURL(file);
-});
 
-</script>
+      } catch (err) {
+        Swal.fire("❌ ข้อผิดพลาด", "ส่งข้อมูลไม่สำเร็จ: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "ยืนยันการชำระเงิน";
+      }
+    };
+
+    reader.readAsDataURL(file);
+  });
+  </script>
 </body>
 </html>

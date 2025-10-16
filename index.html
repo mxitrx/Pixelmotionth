@@ -64,7 +64,7 @@
         </a>
         <header class="text-center mb-10">
             <i class="fas fa-tasks text-4xl accent-color"></i>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-100 mt-2">Pixelmotionth - เช่าอุปกรณ์</h1>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-100 mt-2">เช่าอุปกรณ์</h1>
             <p class="text-gray-400 mt-2 text-base sm:text-lg">เลือกอุปกรณ์และช่วงเวลาที่ต้องการเช่า</p>
         </header>
 
@@ -185,6 +185,8 @@
         </div>
     </div>
 
+
+    
     <footer class="marquee-container">
         <p class="marquee-text accent-color">กรุณาดูแลรักษาอุปกรณ์ที่เช่า และส่งคืนตามกำหนดเวลา... ขอขอบคุณครับ</p>
     </footer>
@@ -347,7 +349,7 @@
             return;
         }
 
-        // ✅ แก้ index สถานะเป็น [8]
+        
         const rentedItems = data.filter((rowData) => rowData[8] === "เช่าอยู่");
 
         if (rentedItems.length === 0) {
@@ -510,11 +512,11 @@ document.getElementById('slip-form').addEventListener('submit', async (e) => {
     }
 });
 
-// ✅ รีเฟรชสถานะการเช่าทุก 60 วินาที
+// ✅ รีเฟรชสถานะการเช่าทุก 10 วินาที
 setInterval(() => {
     fetchStatusData();
     refreshCalendarEvents();
-}, 60000);
+}, 10000);
 
 // ✅ โหลดรายการอุปกรณ์พร้อมรูป
 async function fetchEquipmentList() {

@@ -1,0 +1,441 @@
+// --- CONFIG ---
+const SHEET_ID = "1M4wCXVYhUaSDh1Kvj15H6N0h8aCOI1LQ_NHcxN6-5Jo";
+const CALENDAR_ID = "357f52d58f932fad131d7a2881a17e238f71487eb315b08facb86437f6efd5e6@group.calendar.google.com";
+const ADMIN_USERNAME = "mxitrx";
+const ADMIN_PASSWORD = "!Zero0925360936";
+const DRIVE_FOLDER_ID = "14agIUrtdoH_jNjX5Ftnh1ehcfUPdEo-Z"; // โฟลเดอร์เก็บสลิป
+
+const LOG_SHEET_NAME = "RentalLog";
+const EQUIPMENT_SHEET_NAME = "EquipmentList";
+
+const sheet = SpreadsheetApp.openById(SHEET_ID);
+const logSheet = sheet.getSheetByName(LOG_SHEET_NAME);
+const equipmentSheet = sheet.getSheetByName(EQUIPMENT_SHEET_NAME);
+const calendar = CalendarApp.getCalendarById(CALENDAR_ID);
+
+// ===============================================================
+// GET
+// ===============================================================
+function doGet(e) {
+  const action = e.parameter.action;
+  try {
+    if (action === "getEquipment") return handleGetEquipmentList();
+    if (action === "getLogs") return handleGetLogs();
+    if (action === "getEvents") return handleGetEvents();
+    if (action === "getPromptPayQR") return handleGetPromptPayQR(e);
+    if (action === "contact") return handleContactForm(e);
+
+
+    return createJsonResponse({ error: "Invalid GET action" });
+  } catch (err) {
+    return createJsonResponse({ error: err.message });
+  }
+}
+
+// ===============================================================
+// POST
+// ===============================================================
+function doPost(e) {
+  try {
+    const params = e.parameter;
+    const action = params.action;
+
+    // ✅ กรณีอัปโหลดสลิป (ไม่ต้องล็อกอิน)
+    if (action === "uploadSlip" || (e && e.files && e.files.file)) {
+      return handlePaymentSlip(e);
+    }
+
+    // ✅ กรณี uploadSlip แบบ base64 (ไม่ต้องล็อกอิน)
+    if (e.postData && e.postData.contents && e.postData.type === "application/json") {
+      const data = JSON.parse(e.postData.contents);
+      if (data.action === "uploadSlip") return handleSlipUpload(data);
+    }
+
+    // ✅ เช่าปกติจากหน้า index.html
+    if (action === "rent") return handleRental(params);
+
+    // 🧠 ส่วนอื่นต้องตรวจรหัสผู้ดูแล
+    if (params.username !== ADMIN_USERNAME || params.password !== ADMIN_PASSWORD) {
+      throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+    }
+
+    if (action === "addEquipment") return handleAddEquipment(params);
+    if (action === "deleteEquipment") return handleDeleteEquipment(params);
+    if (action === "deleteLog") return handleDeleteLog(params);
+    if (action === "endRental") return handleEndRental(params);
+
+    return createJsonResponse({ result: "error", message: "Invalid POST action" });
+  } catch (err) {
+    return createJsonResponse({ result: "error", message: err.message });
+  }
+}
+
+
+// ===============================================================
+// ✅ handlePaymentSlip (อัปโหลดสลิปจากหน้า payment.html)
+// ===============================================================
+function handlePaymentSlip(e) {
+  try {
+    Logger.log("📥 handlePaymentSlip called");
+    Logger.log(JSON.stringify(e));
+
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+
+    // 🔹 รองรับทั้ง form-data และ base64
+    let blob;
+    if (e?.files && e.files.file) {
+      blob = e.files.file;
+    } else if (e?.postData?.contents && e.postData.type === "application/octet-stream") {
+      const data = Utilities.base64Decode(e.postData.contents);
+      blob = Utilities.newBlob(data, "image/jpeg", "slip.jpg");
+    } else {
+      throw new Error("ไม่พบไฟล์แนบ (e.files.file หรือ e.postData.contents)");
+    }
+
+    const name = e.parameter.custName || "ไม่ระบุชื่อ";
+    const equipment = e.parameter.equipment || "ไม่ระบุอุปกรณ์";
+    const amount = e.parameter.amount || "0";
+    const renterEmail = e.parameter.email || "";
+
+    const filename = `${new Date().toISOString().replace(/[:T]/g, "-").split(".")[0]}_${name}_${equipment}.jpg`;
+    const file = folder.createFile(blob).setName(filename);
+    const fileUrl = file.getUrl();
+
+    // ✅ อัปเดต Log ในชีต
+    const lastRow = logSheet.getLastRow();
+    const data = logSheet.getRange(2, 1, lastRow - 1, 11).getValues();
+    let found = false;
+
+    for (let i = data.length - 1; i >= 0; i--) {
+      const [ts, renter, , , eq, , , status] = data[i];
+      if (renter === name && eq === equipment && status === "รอชำระเงิน") {
+        logSheet.getRange(i + 2, 11).setValue(fileUrl);
+        logSheet.getRange(i + 2, 8).setValue("เช่าอยู่");
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) Logger.log(`⚠️ ไม่พบรายการเช่าของ ${name} (${equipment})`);
+
+    // ✅ ส่งกลับ JSON
+    return createJsonResponse({ success: true, message: "อัปโหลดสลิปสำเร็จ", fileUrl });
+  } catch (err) {
+    Logger.log("❌ Error in handlePaymentSlip: " + err.message);
+    return createJsonResponse({ success: false, message: "เกิดข้อผิดพลาด: " + err.message });
+  }
+}
+
+
+
+
+// ===============================================================
+// ✅ handleSlipUpload (base64 จากระบบเก่า)
+// ===============================================================
+function handleSlipUpload(data) {
+  try {
+    const { file, fileName, mimeType, custName, equipment, amount, email } = data;
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+
+    const blob = Utilities.newBlob(Utilities.base64Decode(file), mimeType, fileName);
+    const newFile = folder.createFile(blob);
+    const fileUrl = newFile.getUrl();
+
+    // ✅ อัปเดตสถานะในชีต
+    const dataValues = logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 11).getValues();
+    for (let i = 0; i < dataValues.length; i++) {
+      const [ts, renter, , , eq, , , status] = dataValues[i];
+      if (renter === custName && eq === equipment && status === "รอชำระเงิน") {
+        logSheet.getRange(i + 2, 11).setValue(fileUrl);
+        logSheet.getRange(i + 2, 8).setValue("เช่าอยู่");
+        break;
+      }
+    }
+
+    return createJsonResponse({ success: true, message: "อัปโหลดสลิปสำเร็จ", fileUrl });
+  } catch (err) {
+    return createJsonResponse({ success: false, message: "เกิดข้อผิดพลาด: " + err.message });
+  }
+}
+
+
+// ===============================================================
+// ✅ handleRental (สร้างเช่าใหม่จากหน้า index.html)
+// ===============================================================
+function handleRental(params) {
+  const { renterName, address, phone, equipmentName, startDate, endDate } = params;
+  const rentalTimestamp = new Date();
+
+  const equipmentMap = getEquipmentMap();
+  const pricePerDay = equipmentMap[equipmentName] ? parseFloat(equipmentMap[equipmentName].price) : 0;
+  if (!pricePerDay) throw new Error(`ไม่พบราคาสำหรับอุปกรณ์: ${equipmentName}`);
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  const totalCost = days * pricePerDay;
+
+  // ✅ เพิ่ม Event ไปใน Google Calendar
+  const eventTitle = `${equipmentName} (${renterName})`;
+  const eventDescription = `เบอร์โทร: ${phone}\nที่อยู่: ${address}\nยอดชำระ: ${totalCost.toFixed(2)} บาท`;
+  const event = calendar.createEvent(eventTitle, start, end, { description: eventDescription });
+
+  // ✅ บันทึกลง Google Sheet
+  logSheet.appendRow([
+    rentalTimestamp, renterName, address, phone, equipmentName,
+    start, end, "รอชำระเงิน", event.getId(), totalCost.toFixed(2), ""
+  ]);
+
+  return createJsonResponse({ result: "success", message: "สร้างรายการเช่าสำเร็จ", rentalId: rentalTimestamp.getTime() });
+}
+
+// ===============================================================
+// ✅ Utility Functions
+// ===============================================================
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getEquipmentMap() {
+  const rows = equipmentSheet.getDataRange().getValues();
+  const map = {};
+  for (let i = 1; i < rows.length; i++) {
+    const [name, price, desc, imageUrl] = rows[i];
+    map[name] = { price, desc, imageUrl };
+  }
+  return map;
+}
+
+// ===============================================================
+// ✅ handleGetEquipmentList (เวอร์ชันใหม่ แสดงรูปด้วย)
+// ===============================================================
+function handleGetEquipmentList() {
+  const data = equipmentSheet.getDataRange().getValues().slice(1); // ข้าม header แถวแรก
+  const formatted = data.map(row => ({
+    name: row[0],           // A = EquipmentName
+    price: row[1],          // B = RentalPrice
+    quantity: row[2],       // C = Quantity
+    desc: row[3] || "",     // D = Description
+    imageUrl: row[4] || ""  // E = ImageUrl (ใหม่)
+  }));
+  return createJsonResponse(formatted);
+}
+
+
+function handleGetLogs() {
+  const data = logSheet.getDataRange().getValues().slice(1);
+  return createJsonResponse(data);
+}
+
+function handleGetEvents() {
+  const data = logSheet.getDataRange().getValues().slice(1);
+  const events = data.filter(row => row[8] && row[5] && row[6]).map(row => ({
+    id: row[8],
+    title: `${row[4]} (${row[1]})`,
+    start: new Date(row[5]).toISOString(),
+    end: new Date(row[6]).toISOString(),
+    body: `เบอร์โทร: ${row[3]}\nที่อยู่: ${row[2]}`
+  }));
+  return createJsonResponse(events);
+}
+
+// ===============================================================
+// ✅ Admin Management
+// ===============================================================
+function handleAddEquipment(params) {
+  equipmentSheet.appendRow([params.name, params.price, params.desc, params.imageUrl]);
+  return createJsonResponse({ result: "success", message: "เพิ่มอุปกรณ์สำเร็จ" });
+}
+
+function handleDeleteEquipment(params) {
+  const name = params.name;
+  const data = equipmentSheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      equipmentSheet.deleteRow(i + 1);
+      return createJsonResponse({ result: "success", message: "ลบอุปกรณ์แล้ว" });
+    }
+  }
+  return createJsonResponse({ result: "error", message: "ไม่พบอุปกรณ์นี้" });
+}
+
+function handleEndRental(params) {
+  const id = params.eventId;
+  const data = logSheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][8] === id) {
+      logSheet.getRange(i + 1, 8).setValue("คืนแล้ว");
+      const ev = calendar.getEventById(id);
+      if (ev) ev.deleteEvent();
+      return createJsonResponse({ result: "success", message: "ยุติการเช่าสำเร็จ" });
+    }
+  }
+  return createJsonResponse({ result: "error", message: "ไม่พบ Event ID" });
+}
+
+function handleDeleteLog(params) {
+  const id = params.eventId;
+  const data = logSheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][8] === id) {
+      logSheet.deleteRow(i + 1);
+      return createJsonResponse({ result: "success", message: "ลบรายการแล้ว" });
+    }
+  }
+  return createJsonResponse({ result: "error", message: "ไม่พบ Log ID" });
+}
+
+function sendAdminEmail(name, equipment, amount, slipUrl) {
+  const adminEmail = "your@email.com"; // 🔹 เปลี่ยนเป็นอีเมลผู้ดูแลจริง
+  const subject = `มีการอัปโหลดสลิปใหม่จาก ${name}`;
+  const body = `
+มีการอัปโหลดสลิปใหม่
+
+ชื่อผู้เช่า: ${name}
+อุปกรณ์: ${equipment}
+ยอดชำระ: ${amount} บาท
+ลิงก์สลิป: ${slipUrl}
+
+กรุณาตรวจสอบรายการใน Google Sheet หรือระบบ Admin
+  `;
+  MailApp.sendEmail(adminEmail, subject, body);
+}
+
+// ===============================================================
+// ✅ Proxy สำหรับ PromptPay QR (แก้ปัญหาโหลดภาพไม่ได้)
+// ===============================================================
+function handleGetPromptPayQR(e) {
+  const id = e.parameter.id || "";
+  const amount = e.parameter.amount || "0.00";
+  const url = `https://promptpay.io/${id}/${amount}.png`;
+
+  try {
+    const res = UrlFetchApp.fetch(url);
+    const blob = res.getBlob();
+    return ContentService
+      .createTextOutput(
+        "data:image/png;base64," + Utilities.base64Encode(blob.getBytes())
+      )
+      .setMimeType(ContentService.MimeType.TEXT);
+  } catch (err) {
+    return createJsonResponse({ error: "โหลด QR ไม่สำเร็จ: " + err.message });
+  }
+}
+
+// ===============================================================
+// ✅ handleContactForm: รับข้อความจากหน้า contact.html
+// ===============================================================
+function handleContactForm(e) {
+  try {
+    const { name, email, message } = e.parameter;
+    const sheetName = "ContactMessages";
+    let contactSheet = sheet.getSheetByName(sheetName);
+    if (!contactSheet) contactSheet = sheet.insertSheet(sheetName);
+
+    const timestamp = new Date();
+    contactSheet.appendRow([timestamp, name, email, message]);
+
+    // ✅ ส่งอีเมลแจ้งเตือนผู้ดูแล
+    const adminEmail = "oitthiritkhunsiri@gmail.com"; // 👉 แก้เป็นอีเมลคุณ
+    const subject = `📩 ข้อความใหม่จาก ${name}`;
+    const body = `
+มีข้อความใหม่จากผู้ใช้ระบบเช่าอุปกรณ์:
+
+ชื่อ: ${name}
+อีเมล: ${email}
+
+ข้อความ:
+${message}
+
+ส่งเมื่อ: ${timestamp.toLocaleString("th-TH")}
+    `;
+    MailApp.sendEmail(adminEmail, subject, body);
+
+    // ✅ ส่งอีเมลตอบกลับผู้ใช้
+    MailApp.sendEmail({
+      to: email,
+      subject: `📬 ระบบเช่าอุปกรณ์ - ได้รับข้อความของคุณแล้ว`,
+      htmlBody: `
+        สวัสดีคุณ ${name},<br><br>
+        ขอบคุณที่ติดต่อเรา ทางทีมงานได้รับข้อความของคุณเรียบร้อยแล้ว<br>
+        <b>ข้อความที่ส่ง:</b><br>
+        ${message}<br><br>
+        ทีมงานจะรีบติดต่อกลับโดยเร็วที่สุดครับ 🙏<br><br>
+        — ทีมงาน Pixelmotionth
+      `
+    });
+
+    return createJsonResponse({ result: "success", message: "ส่งข้อความสำเร็จ" });
+  } catch (err) {
+    return createJsonResponse({ result: "error", message: err.message });
+  }
+}
+
+function updateStock(equipmentName, change) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Equipment");
+  const data = sheet.getDataRange().getValues();
+  const nameCol = 1; // สมมติชื่ออุปกรณ์อยู่คอลัมน์ A
+  const stockCol = 3; // สมมติคอลัมน์ C คือจำนวนคงเหลือ (ปรับตามจริง)
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][nameCol - 1] === equipmentName) {
+      let currentStock = Number(data[i][stockCol - 1]) || 0;
+      sheet.getRange(i + 1, stockCol).setValue(currentStock + change);
+      break;
+    }
+  }
+}
+
+// 🟠 ตัดสต็อกเมื่อเช่า
+function rentEquipment(equipmentName, quantity) {
+  updateStock(equipmentName, -Math.abs(quantity));
+}
+
+// 🟢 คืนสต็อกเมื่อสิ้นสุดการเช่า
+function returnEquipment(equipmentName, quantity) {
+  updateStock(equipmentName, Math.abs(quantity));
+}
+
+function handleUpdateStatus(params) {
+  try {
+    const { name, equipment, status } = params;
+    const data = logSheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      const [ts, renter, , , eq] = data[i];
+      if (renter === name && eq === equipment) {
+        logSheet.getRange(i + 1, 8).setValue(status); // คอลัมน์สถานะ
+        if (status === "ยกเลิก") sendCancelEmail(renter, eq);
+        if (status === "ชำระแล้ว") sendConfirmEmail(renter, eq);
+        return createJsonResponse({ result: "success", message: `อัปเดตสถานะเป็น ${status} สำเร็จ` });
+      }
+    }
+    return createJsonResponse({ result: "error", message: "ไม่พบรายการเช่า" });
+  } catch (err) {
+    return createJsonResponse({ result: "error", message: err.message });
+  }
+}
+
+function sendConfirmEmail(name, equipment) {
+  const adminEmail = "oitthiritkhunsiri@gmail.com";
+  const subject = `✅ การชำระเงินได้รับการยืนยัน (${name})`;
+  const body = `ระบบได้เปลี่ยนสถานะของ ${name} (${equipment}) เป็น "ชำระแล้ว"`;
+  MailApp.sendEmail(adminEmail, subject, body);
+}
+
+function sendCancelEmail(name, equipment) {
+  const adminEmail = "oitthiritkhunsiri@gmail.com";
+  const subject = `❌ การเช่าถูกยกเลิก (${name})`;
+  const body = `ระบบได้เปลี่ยนสถานะของ ${name} (${equipment}) เป็น "ยกเลิก"`;
+  MailApp.sendEmail(adminEmail, subject, body);
+}
+
+if (action === "getFinance") {
+  const sheet = ss.getSheetByName("Finance");
+  const values = sheet.getDataRange().getValues();
+  values.shift();
+  return ContentService.createTextOutput(JSON.stringify(values)).setMimeType(ContentService.MimeType.JSON);
+}
+

@@ -300,4 +300,70 @@ body {
     border-color: #f97316;
 }
 
+/* ----- Responsive Modals (Mobile Friendly) ----- */
+
+/* ขนาดและระยะห่างของ Modal */
+.modal-content {
+  width: 90%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    width: 400px;
+    padding: 2rem;
+  }
+}
+
+/* Modal รายละเอียดอุปกรณ์ */
+.details-modal-content {
+  width: 95%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Modal PromptPay */
+.promptpay-modal-content {
+  width: 95%;
+  max-width: 420px;
+  background: #fff;
+  color: #111827;
+  text-align: center;
+}
+.promptpay-modal-content img {
+  width: 80vw;
+  max-width: 260px;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Modal Event Details */
+.event-details-modal-content {
+  width: 95%;
+  max-width: 450px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Modal Slip Upload */
+.slip-upload-modal-content {
+  width: 95%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.slip-upload-modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .slip-upload-modal-content form {
+    flex-direction: column;
+  }
+}
 
