@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รถเข็นของฉัน</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="logo"><h2>Pixelmotion Production</h2></a>
+      <nav>
+        <a href="index.html">หน้าแรก</a>
+        <a href="contact.html">ติดต่อเรา</a>
+        <a href="cart.html" class="cart-nav">
+        <i class="fas fa-shopping-cart"></i> รถเข็น
+        <span id="cart-count">0</span>
+    </a>
+      </nav>
+      <button id="theme-toggle" class="theme-btn">
+        <i class="fas fa-moon"></i>
+        <span class="theme-text">โหมดมืด</span>
+      </button>
+    </header>
+
+    <main>
+      <h2>รายการเช่าของคุณ</h2>
+      <div class="cart-items-container" id="cart-items">
+          </div>
+      <div id="cart-summary">
+          </div>
+       <button id="checkout-button" class="btn primary-btn" style="display: none;">ไปยังหน้าชำระเงิน</button>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดต่อเรา</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="index.html" class="logo"><h2>Pixelmotion Production</h2></a>
+            <nav>
+                <a href="index.html">หน้าแรก</a>
+                <a href="contact.html">ติดต่อเรา</a>
+                <a href="cart.html" class="cart-nav">
+                    <i class="fas fa-shopping-cart"></i> รถเข็น
+                    <span id="cart-count">0</span>
+                </a>
+            </nav>
+            <button id="theme-toggle" class="theme-btn">
+                <i class="fas fa-moon"></i>
+                <span class="theme-text">โหมดมืด</span>
+            </button>
+        </header>
+
+        <main class="contact-container">
+            <h1>ติดต่อเรา</h1>
+            <p>มีคำถามหรือข้อเสนอแนะ? กรอกฟอร์มด้านล่างได้เลย</p>
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <label for="name">ชื่อ:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">อีเมล:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">ข้อความ:</label>
+                    <textarea id="message" name="message" rows="6" required></textarea>
+                </div>
+                <button type="submit" class="btn primary-btn">ส่งข้อความ</button>
+            </form>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
