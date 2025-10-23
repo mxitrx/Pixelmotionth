@@ -204,7 +204,7 @@ if (path === 'payment.html') {
         total += t;
         summary.innerHTML += `<div class="summary-item"><span>${item.name} (${item.days} วัน)</span><span>฿${t.toLocaleString()}</span></div>`;
     });
-    totalBox.innerHTML = `<div class="summary-line total"><span>รวมทั้งหมด</span><span>฿${total.toLocaleString()}</span></div>`;
+    totalBox.innerHTML = `<div class="summary-line total"><span>รวมทั้งหมด</span> <span>฿${total.toLocaleString()}</span></div>`;
 
     form.addEventListener('submit', async e => {
   e.preventDefault();
@@ -242,7 +242,7 @@ if (path === 'payment.html') {
     }
 
     // success
-    showModal("✅ สำเร็จ", "ระบบได้รับข้อมูลแล้ว ขอบคุณครับ/ค่ะ!");
+    showModal("✅ สำเร็จ", "ระบบได้รับข้อมูลแล้ว ทางเราจะติดต่อไปครับ");
     cart = [];
     saveCart();
     form.reset();
@@ -271,3 +271,4 @@ if (path === 'payment.html') {
 
     updateCartCount();
 });
+

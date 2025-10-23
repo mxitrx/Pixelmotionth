@@ -1,11 +1,12 @@
 /* General Styling */
 :root {
-    --primary-color: #007bff;
-    --primary-hover-color: #0056b3;
-    --background-color: #f4f4f9;
+    /* Updated Professional Light Theme (White/Gold) */
+    --primary-color: #E69500; /* Professional Gold */
+    --primary-hover-color: #C67F00; /* Darker Gold */
+    --background-color: #f8f9fa; /* Clean off-white */
     --card-bg-color: #ffffff;
-    --text-color: #333333;
-    --border-color: #e0e0e0;
+    --text-color: #212529; /* Softer black for text */
+    --border-color: #dee2e6;
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -17,14 +18,15 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+/* Updated Professional Dark Theme (Black/Yellow) */
 body.dark-mode {
-    --primary-color: #4dabf7;
-    --primary-hover-color: #1c7ed6;
-    --background-color: #121212;
-    --card-bg-color: #1e1e1e;
-    --text-color: #e0e0e0;
-    --border-color: #444444;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --primary-color: #FBC02D; /* Vibrant Yellow */
+    --primary-hover-color: #F9A825; /* Darker hover yellow */
+    --background-color: #121212; /* Near-black background */
+    --card-bg-color: #1e1e1e; /* Dark grey for cards */
+    --text-color: #EAEAEA; /* Light grey text */
+    --border-color: #333333; /* Subtle dark border */
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .container {
@@ -46,6 +48,7 @@ header {
 header .logo h2 {
     margin: 0;
     color: var(--primary-color);
+    transition: color 0.3s;
 }
 a {
     color: var(--primary-color);
@@ -90,7 +93,7 @@ header nav a:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 .theme-btn:hover {
     background-color: var(--border-color);
@@ -106,13 +109,23 @@ header nav a:hover {
     font-weight: bold;
     text-align: center;
     display: inline-block;
-    transition: all 0.3s ease;
+    transition: transform 0.15s ease-out, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn:active {
+    transform: scale(0.97); /* ทำให้ปุ่มยุบลงเล็กน้อย */
+    box-shadow: none; /* เอาเงาออกชั่วคราว */
 }
 
 .primary-btn {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--background-color);
 }
+
+body.dark-mode .primary-btn{
+    color: #121212;
+}
+
 .primary-btn:hover:not(:disabled) {
     background-color: var(--primary-hover-color);
     transform: translateY(-2px);
@@ -143,7 +156,7 @@ header nav a:hover {
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 body.dark-mode .product-card:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }
 
 .product-image-container {
@@ -180,7 +193,7 @@ body.dark-mode .product-card:hover {
     margin: 0 0 20px 0;
 }
 .product-info .btn {
-    margin-top: auto; /* ดันปุ่มลงล่างสุด */
+    margin-top: auto;
 }
 
 /* Details Page */
@@ -348,13 +361,13 @@ body.dark-mode .empty-cart i { color: #444; }
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color), 0.2);
 }
 .form-group textarea {
     resize: vertical;
     min-height: 120px;
 }
-.contact-form .btn { /* ใช้คลาส btn แทน book-btn */
+.contact-form .btn { 
     margin-top: 10px;
 }
 /* Payment Page */
@@ -484,3 +497,32 @@ body.dark-mode .empty-cart i { color: #444; }
 .flatpickr-months .flatpickr-month {
     font-weight: 600 !important;
 }
+
+/* ========================================= */
+/* Responsive Design                */
+/* ========================================= */
+
+/* For tablets and smaller devices (up to 768px) */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .product-detail-card {
+        flex-direction: column;
+    }
+
+    .payment-container {
+        flex-direction: column;
+    }
+
+    .customer-form {
+        padding: 20px;
+    }
+}
+
