@@ -110,6 +110,7 @@ header nav a:hover {
     text-align: center;
     display: inline-block;
     transition: transform 0.15s ease-out, background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 1em;
 }
 
 .btn:active {
@@ -345,6 +346,7 @@ body.dark-mode .empty-cart i { color: #444; }
 }
 .form-group label {
     margin-bottom: 8px;
+    margin-top: 8px;
     font-weight: 500;
 }
 .form-group input,
@@ -407,6 +409,7 @@ body.dark-mode .empty-cart i { color: #444; }
     margin-top: 20px;
     font-size: 1.3rem;
     font-weight: bold;
+    color: var(--primary-color);
 }
 .customer-form {
     flex: 1.5;
