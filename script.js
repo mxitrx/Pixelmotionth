@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===============================
     // 🔧 CONFIG
     // ===============================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx4JHoIQNEeWRrjSfoUCgt3t6i2v5_qAaLh9GfzcWQJ1tBqTxGhEVEo0MqKT_FSvvGqQ/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxW642oLmTXyjSHARTQ5w6mhCkHwXZg3f4diafjFLv04jw9qI4CwYhoMKpkmlIb2TlVFg/exec";
     const LINE_TOKEN = "7VBjby2ID2NCtXRfBgxkluH7nHPexc/CR1Cc8wpL7qQ7kZEX375UpG+TfXfGwDNUaMkcCPIP9xNqoZ+qHghtwJV9Eciippq82BH3vcPgHfLK2NVex4OuH3ITR/WYXkrJk7YH22pdnRF3mTHELR8XfAdB04t89/1O/w1cDnyilFU=";
 
     // ===============================
@@ -397,4 +397,5 @@ if (path === 'payment.html') {
 
     updateCartCount();
 });
+
 
