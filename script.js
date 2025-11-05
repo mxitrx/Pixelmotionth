@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     name: 'Panasonic AG-UX180 4K',
     price: 1500,
     description: 'กล้องวิดีโอ Panasonic AG-UX180 4K UHD Professional Camcorder',
-    image: 'pic/agux.jpg',
+    image: 'pic/agux.png',
     features: [
       'รองรับการบันทึก 4K UHD 60p',
       'เลนส์ซูมออปติคอล 20×',
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     name: 'DJI SDR Transmission',
     price: 1000,
     description: 'ระบบส่งสัญญาณวิดีโอไร้สาย DJI SDR Transmission ความหน่วงต่ำ สำหรับกล้อง DSLR / Mirrorless / Cinema',
-    image: 'pic/dji.jpg',
+    image: 'pic/dji.png',
     features: [
       'ระยะส่งสัญญาณสูงสุด 3 กม.',
       'ความหน่วงต่ำเพียง 35 ms',
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     name: 'TP-Link TL-SG108',
     price: 100,
     description: 'สวิตช์เครือข่าย TP-Link TL-SG108 8 พอร์ต Gigabit Desktop Switch',
-    image: 'pic/tplink.jpg',
+    image: 'pic/tplink.png',
     features: [
       'พอร์ต Gigabit 8 ช่อง',
       'โอนถ่ายข้อมูลสูงสุด 1000 Mbps',
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     name: 'Ugreen Type C Hub',
     price: 100,
     description: 'Ugreen Type C Hub 9 in 1 USB-C to HDMI 4K LAN RJ45 PD 100W Aluminum Multiport Adapter',
-    image: 'pic/typec.webp',
+    image: 'pic/typec.png',
     features: [
       'พอร์ตครบ 9 in 1',
       'รองรับ HDMI 4K 60Hz',
@@ -63,7 +63,36 @@ document.addEventListener('DOMContentLoaded', () => {
       'PD Fast Charge 100W',
       'วัสดุอลูมิเนียม แข็งแรง สวยงาม'
     ]
-  }
+  },
+  
+  {
+    id: 5,
+    name: 'Ulanzi Vl119',
+    price: 100,
+    description: 'Ulanzi Vl119 LED Video Light with Adjustable Brightness and Color Temperature for Photography and Videography',
+    image: 'pic/ulanzi.png',
+    features: [
+      'ปรับความสว่างได้ 0-100%',
+      'ปรับอุณหภูมิสีได้ 3200K-5600K',
+      'แบตเตอรี่ในตัว ใช้งานได้นาน',
+      'ขนาดกะทัดรัด พกพาสะดวก'
+    ]
+  },
+
+  {
+    id: 6,
+    name: 'Sachtler FSB 4',
+    price: 500,
+    description: 'Sachtler FSB 4 Fluid Head with Tripod System for Professional Video Production',
+    image: 'pic/fsb4.png',
+    features: [
+      'หัวฟลูอิดคุณภาพสูง',
+      'รองรับน้ำหนักกล้องสูงสุด 7 กก.',
+      'ขาตั้งอลูมิเนียมแข็งแรง ทนทาน',
+      'ปรับความต้านทานได้หลายระดับ'
+    ]
+  },
+
 ];
 
 
