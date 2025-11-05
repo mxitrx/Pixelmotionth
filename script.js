@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'แหวนควบคุม 3 วง (โฟกัส / ซูม / ไอริส)'
     ]
   },
+  
   {
     id: 2,
     name: 'DJI SDR Transmission',
@@ -37,19 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
       'น้ำหนักเบาเพียง 145 กรัม'
     ]
   },
+  
   {
     id: 3,
-    name: 'TP-Link TL-SG108',
-    price: 100,
-    description: 'สวิตช์เครือข่าย TP-Link TL-SG108 8 พอร์ต Gigabit Desktop Switch',
-    image: 'pic/tplink.png',
+    name: 'Sachtler FSB 4',
+    price: 500,
+    description: 'Sachtler FSB 4 Fluid Head with Tripod System for Professional Video Production',
+    image: 'pic/fsb4.png',
     features: [
-      'พอร์ต Gigabit 8 ช่อง',
-      'โอนถ่ายข้อมูลสูงสุด 1000 Mbps',
-      'วัสดุตัวเครื่องโลหะคุณภาพสูง',
-      'ติดตั้งง่าย Plug and Play'
+      'หัวฟลูอิดคุณภาพสูง',
+      'รองรับน้ำหนักกล้องสูงสุด 7 กก.',
+      'ขาตั้งอลูมิเนียมแข็งแรง ทนทาน',
+      'ปรับความต้านทานได้หลายระดับ'
     ]
   },
+
   {
     id: 4,
     name: 'Ugreen Type C Hub',
@@ -81,15 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   {
     id: 6,
-    name: 'Sachtler FSB 4',
-    price: 500,
-    description: 'Sachtler FSB 4 Fluid Head with Tripod System for Professional Video Production',
-    image: 'pic/fsb4.png',
+    name: 'TP-Link TL-SG108',
+    price: 100,
+    description: 'สวิตช์เครือข่าย TP-Link TL-SG108 8 พอร์ต Gigabit Desktop Switch',
+    image: 'pic/tplink.png',
     features: [
-      'หัวฟลูอิดคุณภาพสูง',
-      'รองรับน้ำหนักกล้องสูงสุด 7 กก.',
-      'ขาตั้งอลูมิเนียมแข็งแรง ทนทาน',
-      'ปรับความต้านทานได้หลายระดับ'
+      'พอร์ต Gigabit 8 ช่อง',
+      'โอนถ่ายข้อมูลสูงสุด 1000 Mbps',
+      'วัสดุตัวเครื่องโลหะคุณภาพสูง',
+      'ติดตั้งง่าย Plug and Play'
+    ]
+  },
+
+  {
+    id: 7,
+    name: 'HDMI FIBER 20M',
+    price: 100,
+    description: 'สาย HDMI Fiber Optic 20 เมตร รองรับ 4K UHD สำหรับกล้องและอุปกรณ์วิดีโอ',
+    image: 'pic/hdmi.png',
+    features: [
+      'รองรับความละเอียดสูงสุด 4K UHD',
+      'ยาว 20 เมตร',
+      'ทนทานต่อการรบกวนสัญญาณ',
+      'เหมาะสำหรับงานถ่ายทอดสดและสตูดิโอ'
     ]
   },
 
