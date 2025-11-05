@@ -555,3 +555,44 @@ body.dark-mode .empty-cart i { color: #444; }
   color: var(--primary-color);
   font-weight: bold;
 }
+
+/* Social Links Section */
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+  align-items: center;
+}
+
+.social-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  padding: 12px 24px;
+  box-shadow: var(--box-shadow);
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 1.1rem;
+  width: 250px;
+  justify-content: center;
+  transition: transform 0.2s, background-color 0.3s, color 0.3s;
+}
+
+.social-item i {
+  color: var(--primary-color);
+  font-size: 1.3rem;
+}
+
+.social-item:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+}
+
+.social-item:hover i {
+  color: white;
+}

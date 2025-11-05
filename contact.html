@@ -1,52 +1,57 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ติดต่อเรา - Pixelmotion Production</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ติดต่อเรา - Pixelmotion Production</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-
-    <div class="container">
-        <header>
-            <a href="index.html" class="logo"><h2>Pixelmotion Production</h2></a>
-            <nav>
-                <a href="index.html">หน้าแรก</a>
-                <a href="contact.html">ติดต่อเรา</a>
-                <a href="cart.html" class="cart-nav">
+  <div class="container">
+    <header>
+      <a href="index.html" class="logo"><h2>Pixelmotion Production</h2></a>
+      <nav>
+        <a href="index.html">รายการทั้งหมด</a>
+        <a href="contact.html">ติดต่อ</a>
+        <a href="cart.html" class="cart-nav">
                     <i class="fas fa-shopping-cart"></i> รถเข็น
                     <span id="cart-count">0</span>
                 </a>
-            </nav>
-            <button id="theme-toggle" class="theme-btn">
-                <i class="fas fa-moon"></i>
-                <span class="theme-text">โหมดมืด</span>
-            </button>
-        </header>
-
-        <main class="contact-container">
-            <h1>ติดต่อเรา</h1>
-            <p>มีคำถามหรือข้อเสนอแนะ? กรอกฟอร์มด้านล่างได้เลย</p>
-            <form id="contact-form" class="contact-form">
-                <div class="form-group">
-                    <label for="name">ชื่อ:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">อีเมล:</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="message">ข้อความ:</label>
-                    <textarea id="message" name="message" rows="6" required></textarea>
-                </div>
-                <button type="submit" class="btn primary-btn">ส่งข้อความ</button>
-            </form>
+      </nav>
+      <button id="theme-toggle" class="theme-btn">
+        <i class="fas fa-moon"></i><span class="theme-text">โหมดมืด</span>
+      </button>
+    </header>
+<main>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> กลับไปหน้ารายการ</a>
+            <div id="product-detail-container">
+            </div>
         </main>
-    </div>
+    <section class="contact-container">
+      <h1>ติดต่อเรา</h1>
+      <p>ติดตามและติดต่อทีม Pixelmotion Production ได้ผ่านช่องทางโซเชียลด้านล่าง</p>
 
-    <script src="script.js"></script>
+      <div class="social-links">
+        <a href="https://www.facebook.com/Oitthirit.Khunsiri" target="_blank" class="social-item">
+          <i class="fab fa-facebook-f"></i> Facebook
+        </a>
+        <a href="https://www.instagram.com/mxitrx/" target="_blank" class="social-item">
+          <i class="fab fa-instagram"></i> Instagram
+        </a>
+        <a href="https://www.youtube.com/@mxitrx" target="_blank" class="social-item">
+          <i class="fab fa-youtube"></i> YouTube
+        </a>
+        <a href="http://line.me/ti/p/~mxitrx" target="_blank" class="social-item">
+          <i class="fab fa-line"></i> Line
+        </a>
+        <a href="mailto:oitthiritkhunsiri@gmail.com" class="social-item">
+          <i class="fas fa-envelope"></i> อีเมล
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
