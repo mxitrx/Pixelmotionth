@@ -54,6 +54,21 @@ document.addEventListener('DOMContentLoaded', () => {
   },
 
   {
+    id: 8,
+    name: 'Insta360 X4',
+    price: 500,
+    description: 'กล้อง 360 องศา Insta360 X4 ความละเอียด 5.7K พร้อมกันสั่น FlowState และฟีเจอร์ถ่ายภาพขั้นสูง',
+    image: 'pic/Insta360.png',
+    features: [
+      'ถ่ายวิดีโอ 5.7K 30fps',
+      'ระบบกันสั่น FlowState',
+      'กันน้ำลึก 10 เมตร',
+      'โหมดถ่ายภาพ HDR และ Night Shot',
+      'ตัดต่อวิดีโอด้วยแอป Insta360'
+    ]
+  },
+
+  {
     id: 4,
     name: 'Ugreen Type C Hub',
     price: 100,
