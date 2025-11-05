@@ -526,3 +526,29 @@ body.dark-mode .empty-cart i { color: #444; }
     }
 }
 
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+  justify-content: flex-start;
+}
+
+.features li {
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  box-shadow: var(--box-shadow);
+  position: relative;
+}
+
+.features li::before {
+  content: "• ";
+  color: var(--primary-color);
+  font-weight: bold;
+}

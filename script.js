@@ -9,9 +9,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // 📦 PRODUCT DATA (ตัวอย่าง)
     // ===============================
     const products = [
-        { id: 1, name: 'Panasonic AG-UX180 4K', price: 1500, description: '-', image: 'pic/agux.jpg' },
-        { id: 2, name: 'DJI SDR Transmission', price: 1000, description: '-', image: 'pic/dji.jpg' },
-    ];
+  {
+    id: 1,
+    name: 'Panasonic AG-UX180 4K',
+    price: 1500,
+    description: 'กล้องวิดีโอ Panasonic AG-UX180 4K UHD Professional Camcorder',
+    image: 'pic/agux.jpg',
+    features: [
+      'รองรับการบันทึก 4K UHD 60p',
+      'เลนส์ซูมออปติคอล 20×',
+      'ระบบกันสั่น 5 แกน Hybrid O.I.S.',
+      'ช่องใส่การ์ด SD คู่',
+      'แหวนควบคุม 3 วง (โฟกัส / ซูม / ไอริส)'
+    ]
+  },
+  {
+    id: 2,
+    name: 'DJI SDR Transmission',
+    price: 1000,
+    description: 'ระบบส่งสัญญาณวิดีโอไร้สาย DJI SDR Transmission ความหน่วงต่ำ สำหรับกล้อง DSLR / Mirrorless / Cinema',
+    image: 'pic/dji.jpg',
+    features: [
+      'ระยะส่งสัญญาณสูงสุด 3 กม.',
+      'ความหน่วงต่ำเพียง 35 ms',
+      'รองรับ HDMI / SDI / USB-C',
+      'รองรับโหมด Broadcast',
+      'น้ำหนักเบาเพียง 145 กรัม'
+    ]
+  },
+  {
+    id: 3,
+    name: 'TP-Link TL-SG108',
+    price: 100,
+    description: 'สวิตช์เครือข่าย TP-Link TL-SG108 8 พอร์ต Gigabit Desktop Switch',
+    image: 'pic/tplink.jpg',
+    features: [
+      'พอร์ต Gigabit 8 ช่อง',
+      'โอนถ่ายข้อมูลสูงสุด 1000 Mbps',
+      'วัสดุตัวเครื่องโลหะคุณภาพสูง',
+      'ติดตั้งง่าย Plug and Play'
+    ]
+  },
+  {
+    id: 4,
+    name: 'Ugreen Type C Hub',
+    price: 100,
+    description: 'Ugreen Type C Hub 9 in 1 USB-C to HDMI 4K LAN RJ45 PD 100W Aluminum Multiport Adapter',
+    image: 'pic/typec.webp',
+    features: [
+      'พอร์ตครบ 9 in 1',
+      'รองรับ HDMI 4K 60Hz',
+      'มีช่อง LAN RJ45',
+      'PD Fast Charge 100W',
+      'วัสดุอลูมิเนียม แข็งแรง สวยงาม'
+    ]
+  }
+];
+
 
     // ===============================
     // 🌗 THEME TOGGLE
@@ -90,10 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="product-detail-image">
                 <img src="${product.image}">
             </div>
+            
             <div class="product-detail-info">
                 <h1>${product.name}</h1>
                 <p class="price">฿${product.price.toLocaleString()}/วัน</p>
                 <p>${product.description}</p>
+                
                 <div class="date-picker-container">
                     <div class="date-field">
                         <label>วันที่เช่า</label>
@@ -104,10 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="text" id="end-date">
                     </div>
                 </div>
+                
                 <p id="total-price">ราคารวม: ฿0</p>
                 <button id="add-to-cart-btn" class="btn primary-btn" disabled>กรุณาเลือกวันที่</button>
             </div>
         </div>`;
+        if (product.features && product.features.length) {
+  const featureHTML = `
+    <ul class="features">
+      ${product.features.map(f => `<li>${f}</li>`).join('')}
+    </ul>`;
+  container.querySelector('.product-detail-info').innerHTML += featureHTML;
+}
+
 
         const addBtn = document.getElementById('add-to-cart-btn');
         const totalText = document.getElementById('total-price');
