@@ -84,6 +84,7 @@ header nav a:hover {
     font-weight: bold;
 }
 .theme-btn {
+    font-family: 'Sarabun', sans-serif;
     background: none;
     border: 1px solid var(--border-color);
     color: var(--text-color);
@@ -597,4 +598,5 @@ body.dark-mode .empty-cart i { color: #444; }
 .social-item:hover i {
   color: white;
 }
+
 
