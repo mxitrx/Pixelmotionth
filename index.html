@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixelmotion | Professional Camera Rental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="pixelicon.ico">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">PIXELMOTION</a>
+            <div class="nav-links">
+                <a href="index.html" class="active">หน้าแรก</a>
+                <a href="inventory.html">รายการอุปกรณ์</a>
+                <a href="terms.html">เงื่อนไขการเช่า</a>
+                <a href="contact.html">ติดต่อเรา</a>
+            </div>
+            <div class="nav-actions">
+                <a href="cart.html" class="icon-btn">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="nav-cart-count" class="badge" style="display:none;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-subtitle">EQUIPMENT RENTAL</span>
+            <h1>ยกระดับงานโปรดักชั่น<br>ด้วยอุปกรณ์ระดับมืออาชีพ</h1>
+            <p>บริการเช่ากล้อง เลนส์ และอุปกรณ์ไฟ ครบวงจร พร้อมทีมงานให้คำปรึกษา</p>
+            <a href="inventory.html" class="btn-primary hero-btn">ดูอุปกรณ์ทั้งหมด</a>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <div class="section-header">
+            <h2>New Arrivals</h2>
+            <p>อัปเดตอุปกรณ์ใหม่ล่าสุด พร้อมให้เช่าแล้ววันนี้</p>
+        </div>
+
+        <div class="inventory-grid" id="inventory-grid">
+            <div style="text-align: center; color: #666; grid-column: 1/-1; padding: 40px;">
+                <i class="fas fa-spinner fa-spin"></i> กำลังโหลดรายการสินค้า...
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="inventoryModal">
+        <div class="modal-container">
+            <button class="modal-close-btn">&times;</button>
+            <div class="modal-grid">
+                <div class="modal-image-col">
+                    <img id="modal-img" src="" alt="">
+                </div>
+                <div class="modal-content-col">
+                    <div class="modal-header">
+                        <span id="modal-code">CODE</span>
+                        <div class="modal-status-wrapper">
+                            <span class="status-pill" id="modal-status-pill">Available</span>
+                        </div>
+                    </div>
+                    
+                    <h2 id="modal-title">Title</h2>
+                    <p class="modal-price">ราคาเช่า: <span>ติดต่อสอบถาม</span></p>
+
+                    <div class="divider"></div>
+
+                    <div class="items-box">
+                        <h4><i class="fas fa-box-open"></i> อุปกรณ์ภายในชุด (What's in the box):</h4>
+                        <ul id="modal-items-list" class="styled-list">
+                        </ul>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn-primary full-width">จองอุปกรณ์นี้</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 Pixelmotion. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
